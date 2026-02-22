@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact – Antico Pizza</title>
+  <meta name="description" content="Contacteer ons voor reserveringen, vragen of vacatures – HAL5 & Muntstraat 16"/>
+  <link rel="stylesheet" href="Antico.css"/>
+
+  <!-- Optional: Font Awesome for social icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+
+<body>
+
+  <!-- Navigation (same as homepage) -->
+  <header>
+    <div class="nav-container">
+      <a href="anticoHomePage.html" class="logo">
+        <img src="https://www.anticopizza.be/wp-content/uploads/2020/06/Antico-Sourdoug-Pizza-IG-Logo.png" alt="Antico Pizza logo"/>
+      </a>
+      <nav>
+        <ul class="main-nav">
+          <li><a href="anticoMenu.html">Menu</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropbtn">Order / Reserve ▼</a>
+            <ul class="dropdown-content">
+              <li><a href="Eten bestellen/reserveTable.html">Reserve a table</a></li>
+              <li><a href="Eten bestellen/pickupOrder.html">Order a Pick-up</a></li>
+              <li><a href="Eten bestellen/delivery.html">Order a delivery</a></li>
+            </ul>
+          </li>
+          <li><a href="anticoLocations.html">Locations</a></li>
+          <li><a href="anticoContact.html" class="active">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+    <section id="hero">
+      <div class="hero-content">
+        <h1>Contact</h1>
+        <p>We horen graag van je – voor vragen, reserveringen of gewoon een goeie babbel over pizza.</p>
+      </div>
+    </section>
+
+    <!-- Contact Info + Social + Jobs -->
+    <section class="contact-grid">
+      <!-- Left: Contact details & social -->
+      <div class="contact-info">
+        <h2>Neem contact op</h2>
+
+        <div class="location">
+          <h3>HAL5</h3>
+          <p>HAL 5, Vaartstraat 226<br>3018 Kessel-Lo (Leuven)</p>
+          <p><strong>Tel:</strong> +32 16 123 456</p>
+          <p><strong>Email:</strong> <a href="mailto:hal5@anticopizza.be">hal5@anticopizza.be</a></p>
+        </div>
+
+        <div class="location">
+          <h3>Muntstraat 16</h3>
+          <p>Muntstraat 16<br>3000 Leuven</p>
+          <p><strong>Tel:</strong> +32 16 789 012</p>
+          <p><strong>Email:</strong> <a href="mailto:muntstraat@anticopizza.be">muntstraat@anticopizza.be</a></p>
+        </div>
+
+        <div class="social">
+          <h3>Volg ons</h3>
+          <div class="social-icons">
+            <a href="#" target="_blank" aria-label="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" target="_blank" aria-label="Facebook">
+              <i class="fab fa-facebook"></i>
+            </a>
+            <a href="#" target="_blank" aria-label="TikTok">
+              <i class="fab fa-tiktok"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Contact form -->
+      <div class="contact-form">
+        <h2>Stuur ons een bericht</h2>
+        <form action="#" method="post">
+          <label for="name">Naam</label>
+          <input type="text" id="name" name="name" required placeholder="Jouw naam" />
+
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="jouw@email.be" />
+
+          <label for="message">Bericht</label>
+          <textarea id="message" name="message" rows="6" required placeholder="Je vraag of opmerking..."></textarea>
+
+          <button type="submit" class="button">Verzenden</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Jobs section -->
+    <section class="jobs">
+      <div class="jobs-container">
+        <h2>Vacatures</h2>
+        <p>We zijn altijd op zoek naar gepassioneerde mensen die mee willen bouwen aan Antico. Interesse? Stuur je CV naar <a href="mailto:jobs@anticopizza.be">jobs@anticopizza.be</a></p>
+
+        <div class="job-list">
+          <div class="job-item">
+            <h3>Pizzaiolo / Keukenmedewerker (HAL5)</h3>
+            <p>Parttime / Fulltime – ervaring met houtoven is een pluspunt. Flexibele uren, vooral avonden & weekends.</p>
+            <span class="status">Open</span>
+          </div>
+
+          <div class="job-item">
+            <h3>Zaakvoerder / Bediening (Muntstraat 16)</h3>
+            <p>Parttime – 20–30 u/week. Gastvrijheid en oog voor detail zijn belangrijk.</p>
+            <span class="status">Open</span>
+          </div>
+
+          <div class="job-item">
+            <h3>Chauffeur bezorging</h3>
+            <p>Flexibel – eigen wagen vereist. Goed uurloon + fooien.</p>
+            <span class="status">Op aanvraag</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Antico Pizza – Leuven
+  </footer>
+
+</body>
+</html>

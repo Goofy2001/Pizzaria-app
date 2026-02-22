@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pick-up bestellen – Antico Pizza</title>
+    <link rel="stylesheet" href="../Antico.css" />
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #23A455;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        button:hover {
+            background: #1c8a45;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="nav-container">
+            <a href="../anticoHomePage.html" class="logo">
+                <img src="https://www.anticopizza.be/wp-content/uploads/2020/06/Antico-Sourdoug-Pizza-IG-Logo.png"
+                    alt="Antico Pizza logo" />
+            </a>
+            <nav>
+                <ul class="main-nav">
+                    <li><a href="../anticoMenu.html">Menu</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropbtn">Order / Reserve ▼</a>
+                        <ul class="dropdown-content">
+                            <li><a href="reserveTable.html">Reserve a table</a></li>
+                            <li><a href="pickupOrder.html">Order a Pick-up</a></li>
+                            <li><a href="delivery.html">Order a delivery</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="../anticoLocations.html">Locations</a></li>
+                    <li><a href="../anticoContact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-simple">
+            <h1>Pick-up bestellen</h1>
+            <p>Kies je locatie, selecteer je pizza's en kies een ophaaltijd – skip de wachtrij!</p>
+        </section>
+
+        <div class="form-container">
+            <form action="https://formspree.io/f/your-pickup-form-id" method="POST">
+                <div class="form-group">
+                    <label for="location">Locatie</label>
+                    <select id="location" name="location" required>
+                        <option value="">Kies locatie...</option>
+                        <option value="hal5">HAL5</option>
+                        <option value="muntstraat">Muntstraat 16</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Naam</label>
+                    <input type="text" id="name" name="name" required placeholder="Jouw naam" />
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Telefoon</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+32 ... (voor bevestiging)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="pickup-time">Gewenst ophaaltijdstip</label>
+                    <input type="datetime-local" id="pickup-time" name="pickup-time" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="order-details">Bestelling (pizza's en aantal)</label>
+                    <textarea id="order-details" name="order-details" rows="5" required
+                        placeholder="Bijv.: 2× Margherita, 1× Diavola, 1× Marinara..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Opmerkingen / allergieën</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Allergieën, extra wensen..."></textarea>
+                </div>
+
+                <button type="submit">Bestelling plaatsen</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        © 2026 Antico Pizza – Leuven
+    </footer>
+
+</body>
+
+</html>
