@@ -70,25 +70,47 @@ router.get('/branch/:branch_id', async function(req, res) {
 })
 
 //get /on_route/:driver_id --> krijg alle on_route bestellingen voor een specifieke driver
-router.get('')
+router.get('/on_route/:driver_id', async function(req, res) {
+    try {
+        const driver_id = req.params.driver_id
+        //valideren
+        const driverResult = await pool.query(`SELECT * FROM drivers WHERE id = $1`, [driver_id]) // haalt de corresponderende driver op
+        if (driverResult.rows.length === 0 ) {return res.status(404).json({error: `driver met id ${driver_id} bestaat niet`})}
+        // query opstellen
+        const query = `
+            SELECT o.*, d.name as driver_name
+                FROM orders o
+                LEFT JOIN drivers d ON o.driver_id = d.id
+                WHERE o.driver_id = $1`
+        const result = await pool.query(query, [driver_id])
+        if (result.rows.length === 0) {return res.status(404).json({error: `driver ${driver_id} heeft geen actieve bestellingen`})}
+        res.status(200).json(result.rows)
+    } catch(err) {
+        console.error('Error asking database:', err)
+        res.status(500).json({error: 'Database error'})
+    }
+})
 
 //UPDATE
-//patch :status --> status van driver aanpassen
-router.patch('/status/:id', async function(req, res) {
+//patch :status-toggle --> status van driver aanpassen
+router.patch('/status-toggle', async function(req, res) {
     try {
-        const id = req.params.id
-        const status = req.body.status
+        const id = req.body.id
         // valideren
-        if (!status) {return res.status(400).json({error: "Geef een status op"})}
-        if (status !== 'ONLINE' && status !== 'OFFLINE') {return res.status(400).json({error: "Geef een geldig status type op: 'ONLINE of OFFLINE"})}
-        // query opstellen
+        if (!id) {res.status(400).json({error: "Geef een id op"})}
+        const driverResult = await pool.query(`SELECT * FROM drivers WHERE id = $1`, [id])
+        if (driverResult.rows.length === 0) {return res.status(404).json({error: "Geef een geldig id"})}
+        const oldStatus = driverResult.rows[0].status
+        let newStatus
+        if (oldStatus === "ONLINE") {newStatus = "OFFLINE"}
+        else if (oldStatus === "OFFLINE") {newStatus = "ONLINE"}
+        else {return res.status(400).json({error: `De status (${oldStatus}) behoort niet tot de geldige statussen: OFFLINE of ONLINE`})}
         const query = `
             UPDATE drivers
                 SET status = $1
                 WHERE id = $2
                 RETURNING *`
-        const result = await pool.query(query, [status, id])
-        if (result.rows.length === 0 ) {return res.status(404).json({error: `Er is geen driver gevonde met id ${id}`})}
+        const result = await pool.query(query, [newStatus, id])
         return res.status(200).json(result.rows[0])
     } catch(err) {
         console.error('Error asking database:', err)

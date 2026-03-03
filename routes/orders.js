@@ -194,7 +194,7 @@ router.patch('/:id/status', async function(req, res) {
         const status = req.body.status
         // valideren
         if (!status) {return res.status(400).json({error: "status input is nodig voor patch"})}
-        const validStatus = ['pending', 'paid','preparing','ready','on_route','delivered']
+        const validStatus = ['pending', 'paid','preparing','ready','loaded_for_delivery','picked_up','on_table','on_route','delivered','cancelled']
         if (!validStatus.includes(status)) {return res.status(400).json({ error: "Ongeldige status waarde" })}
         //query opstellen
         const query = `
@@ -225,12 +225,13 @@ router.patch('/:id/assign-driver', async function(req, res) {
         if (orderResult.rows.length === 0) {return res.status(404).json({error: `bestelling ${id} bestaat niet`})}
         const order = orderResult.rows[0] // steekt de order in variabele
         if (order.type !== "delivery") {return res.status(400).json({error: `Bestelling ${id} is geen levering`})}
-        if (order.status !== "ready") {return res.status(400).json({error: `Bestelling ${id} is nog niet klaar om door te geven aan driver`})}
         if (order.driver_id !== null) {return res.status(400).json({error: `Bestelling ${id} is al toegewezen aan een driver`})}
+        if (order.status !== "ready") {return res.status(400).json({error: `Bestelling ${id} is nog niet klaar om door te geven aan driver`})}
+        
         // query opstellen
         const query = `
             UPDATE orders
-                SET driver_id = $1, status = 'on_route'
+                SET driver_id = $1, status = 'loaded_for_delivery'
                 WHERE id = $2
                 RETURNING *`
         const result = await pool.query(query, [driver_id, id])
