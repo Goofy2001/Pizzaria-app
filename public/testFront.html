@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Front test page</title>
+</head>
+<body>
+    <h1>Welcome to the front dashboard</h1>
+
+    <h2>Hier komen alle bestellingen (met filter)</h2>
+
+    <input type="number" placeholder="Id of branch">
+    <input type="number" placeholder="Type of orders">
+    <button onclick="ListOrders()">Give Orders</button>
+
+    <div id="Log">Bestellingen:</div>
+
+    <h2>Hier komen alle messages in verband met de server</h2>
+    <div id="messageLog"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io() // maak verbinding met server
+
+        // updates toevoegen aan de log
+        const messageLog = document.getElementById('messageLog')
+        const addUpdate = (message) => {
+            let update = document.createElement('p')
+            update.textContent = message
+            messageLog.appendChild(update)
+        }
+
+        // verbinden met server
+        socket.on('connect', () => {
+            addUpdate("Verbonden met server")
+        })
+
+        // vraag data aan server
+        const ListOrders = () => {
+
+        }
+    </script>
+</body>
+</html>

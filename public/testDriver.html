@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Welcome to the driver dashboard</h1>
+
+    <div class="bestelling-card">
+        <h3>Order #1</h3>
+        <p>Customer: Test klant</p> 
+        <p>adress: teststraat 1, brussel</p>
+        <p>Status: <span>toegewezen</span></p>
+        <button id="startBtn" onclick="startDelivery()">Start delivery</button>
+        <button id="endBtn" onclick="endDelivery()">End delivery</button>
+    </div>
+
+    <hr>
+
+    <div id="Log">Bestellingen:</div>
+
+    <hr>
+
+    <h2>Hier komen alle messages in verband met de server</h2>
+    <div id="messageLog"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io() // maak verbinding met server
+
+        //hardcoded the driver and the order for now
+        const DRIVER_ID = 1
+        const ORDER_ID = 1
+
+
+        // updates toevoegen aan de log
+        const messageLog = document.getElementById('messageLog')
+        const addUpdate = (message) => {
+            const time = new Date().toLocaleDateString()
+            const formatMessage = `${time} - ${message}`
+            const update = document.createElement('p')
+            update.textContent = formatMessage
+            messageLog.appendChild(update)
+        }
+
+        // verbinden met server
+        socket.on('connect', () => {
+            addUpdate("Verbonden met server")
+        })
+
+        // start delivery
+            //vraag voor delivery te starten aan server
+        startDelivery = () => {
+            addUpdate('Stuur naar server: start delivery')
+            socket.emit('driver:start_delivery', {bestelling_id: ORDER_ID, driver_id: DRIVER_ID})
+        }
+            //indien succesfol
+        socket.on('driver:delivery_started', (data) => {
+            addUpdate(`${data.message}`)
+        })
+            //indien error
+        socket.on(('error', (data) => {
+            addUpdate(`error: ${data.message}`)
+        }))
+
+        //eindig een bestelling
+            //vraag voor server update
+        endDelivery = () => {
+            addUpdate('stuur naar server: end delivery')
+            socket.emit('driver:end_delivery', {bestelling_id:ORDER_ID,driver_id:DRIVER_ID})
+        }
+
+            //indien succesvol
+        socket.on('driver:delivery_ended', (data) => {
+            addUpdate(`${data.message}`)
+        })
+    </script>
+</body>
+</html>

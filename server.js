@@ -48,7 +48,7 @@ const initializeSocket = require('./sockets')
 const io = initializeSocket(server)
 app.set('io', io)
 
-// defineer de localhost port
+// definieer de localhost port
 const port = process.env.PORT || 8000
 
 // put server online
