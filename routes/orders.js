@@ -182,6 +182,22 @@ router.get('/branch/:branch_id', async function(req, res) {
         res.status(500).json({error: 'Database error'})
     }
 })
+
+//get ?driver_id=1
+router.get('/drivers/:driver_id', async (req,res) => {
+    try {
+        const driver_id = req.params.driver_id
+        const query = `
+            SELECT o.*, d.name as driver_name
+                FROM orders o LEFT JOIN drivers d ON o.driver_id = d.id
+                WHERE o.driver_id = $1`
+        const result = await pool.query(query, [driver_id])
+        res.status(200).json(result.rows)
+    } catch (error) {
+        console.error('Error asking database:', err)
+        res.status(500).json({error: 'Database error'})
+    }
+})
 //get ?status=pending
 //get ?type=delivery
 //get ?date=2026-02-20

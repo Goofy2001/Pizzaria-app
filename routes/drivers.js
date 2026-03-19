@@ -47,6 +47,24 @@ router.get('/', async function(req, res) {
     }
 })
 
+//get --> 1 driver
+router.get('/:id', async function(req, res) {
+    try {
+        const {id} = req.params
+        // validatie
+        const query = `
+            SELECT id, name, status, branch_id
+                FROM drivers
+                WHERE id = $1`
+        const result = await pool.query(query, [id])
+        if (result.rows.length === 0) {return res.status(404).json({error: `Geen drivers gevonden voor dit id: ${id}`})}
+        res.status(200).json(result.rows[0])
+    } catch(err) {
+        console.error('Error fetching driver:', err)
+        res.status(500).json({error: 'Database error'})
+    }
+})
+
 //get /branch/:branch_id --> krijg alle drivers voor bepaalde branch (momenteel nog geen nut maar is een failsafe als er een fout in db staat)
 router.get('/branch/:branch_id', async function(req, res) {
     try {

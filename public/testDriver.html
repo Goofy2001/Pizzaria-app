@@ -3,24 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Driver test page</title>
 </head>
 <body>
     <h1>Welcome to the driver dashboard</h1>
 
-    <div class="bestelling-card">
-        <h3>Order #1</h3>
-        <p>Customer: Test klant</p> 
-        <p>adress: teststraat 1, brussel</p>
-        <p>Status: <span>toegewezen</span></p>
-        <button id="startBtn" onclick="startDelivery()">Start delivery</button>
-        <button id="endBtn" onclick="endDelivery()">End delivery</button>
-    </div>
+    <p>Driver: <strong id="driverName">-</strong>- ID: <strong id="driverId">-</strong></p>
 
-    <hr>
-
-    <div id="Log">Bestellingen:</div>
-
+    <h2>My orders</h2>
+    <div id="orders">Loading...</div>
+    
     <hr>
 
     <h2>Hier komen alle messages in verband met de server</h2>
@@ -30,9 +22,89 @@
     <script>
         const socket = io() // maak verbinding met server
 
-        //hardcoded the driver and the order for now
-        const DRIVER_ID = 1
-        const ORDER_ID = 1
+        // simpel systeem om driver te kiezen
+            //get driver info
+        getDriverInfo = () => {
+            const urlParams = new URLSearchParams(window.location.search)
+            const driver_id = urlParams.get('driver_id')
+            if (!driver_id) {
+                alert ('No driver id! Use ?driver_id=X in url')
+                return null
+            }
+            return parseInt(driver_id)
+        }
+            //zoek driver id --> indien niet geldig
+        const DRIVER_ID = getDriverInfo()
+        if (!DRIVER_ID) {
+            document.body.innerHTML = '<h1>Geen driver id in url<h1>'
+            throw new Error('No driver id')
+        }
+            //laadt de info van de driver in de html
+        loadDriverInfo = async () => {
+            try {
+                const response = await fetch(`/api/drivers/${DRIVER_ID}`)
+                if (!response.ok) {throw new Error('Driver not found')}
+                const driver = await response.json()
+                document.getElementById('driverName').textContent = driver.name
+                document.getElementById('driverId').textContent = driver.id
+                addUpdate(`ingelogd als ${driver.name}`)
+            } catch(err) {
+                alert(`driver ${DRIVER_ID} niet gevonden!`)
+                addUpdate(`driver ${DRIVER_ID} not found`)
+            }
+        }
+
+        //orders ophalen uit server
+        renderOrders = (orders) => {
+            const container = document.getElementById('orders')
+            if (orders.length === 0) {
+                container.innerHTML = '<p>Geen bestellingen</p>'
+                return}
+            container.innerHTML = orders.map(order => `
+                <div id="order-card-${order.id}">
+                    <h3>Bestelling #${order.id}</h3>
+                    <p><strong>Klant:</strong> ${order.customer_name}</p>
+                    <p><strong>Status:</strong> <span id="status-${order.id}">${order.status}</span></p>
+                    <div id="buttons-${order.id}">${getButtonsForStatus(order.id, order.status)}</div>
+                </div>
+            `).join('');
+        }
+            // buttons afhankelijk van de status
+        getButtonsForStatus = (orderId,status) => {
+            if (status === 'loaded_for_delivery') {
+                return `<button onclick="startDelivery(${orderId})">Start delivery</button>`
+            } else if (status === 'on_route') {
+                return `<button onclick="endDelivery(${orderId})">End Delivery</button>`
+            } else {
+                return ''
+            }
+            
+        }
+
+        // orders inladen voor de driver
+        loadOrders = async () => {
+            try {
+                const response = await fetch(`/api/orders/drivers/${DRIVER_ID}`)
+                const orders = await response.json()
+                renderOrders(orders)
+            } catch(err) {
+                console.error(err)
+            }
+        }
+
+        // order updaten
+        function updateOrder(orderId,newStatus) {
+            //text update
+            const statusSpan = document.getElementById(`status-${orderId}`)
+            if (statusSpan) {
+                statusSpan.textContent = newStatus
+            }
+            //button update
+            const buttonDiv = document.getElementById(`buttons-${orderId}`)
+            if (buttonDiv) {
+                buttonDiv.innerHTML = getButtonsForStatus(orderId,newStatus)
+            }
+        }
 
 
         // updates toevoegen aan de log
@@ -48,17 +120,21 @@
         // verbinden met server
         socket.on('connect', () => {
             addUpdate("Verbonden met server")
+            loadDriverInfo()
+            loadOrders()
+
         })
 
         // start delivery
             //vraag voor delivery te starten aan server
-        startDelivery = () => {
+        startDelivery = (ORDER_ID) => {
             addUpdate('Stuur naar server: start delivery')
             socket.emit('driver:start_delivery', {bestelling_id: ORDER_ID, driver_id: DRIVER_ID})
         }
             //indien succesfol
         socket.on('driver:delivery_started', (data) => {
             addUpdate(`${data.message}`)
+            updateOrder(data.order_id, 'on_route')
         })
             //indien error
         socket.on(('error', (data) => {
@@ -67,7 +143,7 @@
 
         //eindig een bestelling
             //vraag voor server update
-        endDelivery = () => {
+        endDelivery = (ORDER_ID) => {
             addUpdate('stuur naar server: end delivery')
             socket.emit('driver:end_delivery', {bestelling_id:ORDER_ID,driver_id:DRIVER_ID})
         }
@@ -75,7 +151,12 @@
             //indien succesvol
         socket.on('driver:delivery_ended', (data) => {
             addUpdate(`${data.message}`)
+            updateOrder(data.order_id, 'delivered')
         })
+            //indien error
+        socket.on(('error', (data) => {
+            addUpdate(`error: ${data.message}`)
+        }))
     </script>
 </body>
 </html>

@@ -10,11 +10,30 @@
 
     <h2>Hier komen alle bestellingen (met filter)</h2>
 
-    <input type="number" placeholder="Id of branch">
-    <input type="number" placeholder="Type of orders">
-    <button onclick="ListOrders()">Give Orders</button>
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('all')">Alle</button>
+        <button class="tab" onclick="switchTab('pending')">Pending</button>
+        <button class="tab" onclick="switchTab('preparing')">Preparing</button>
+        <button class="tab" onclick="switchTab('ready')">Ready</button>
+        <button class="tab" onclick="switchTab('loaded_for_delivery')">Loaded</button>
+        <button class="tab" onclick="switchTab('on_route')">On Route</button>
+        <button class="tab" onclick="switchTab('delivered')">Delivered</button>
+    </div>
 
-    <div id="Log">Bestellingen:</div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Driver</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+    <tbody id="orderTable">
+    </tbody>
+    </table>
 
     <h2>Hier komen alle messages in verband met de server</h2>
     <div id="messageLog"></div>
@@ -22,6 +41,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io() // maak verbinding met server
+        
 
         // updates toevoegen aan de log
         const messageLog = document.getElementById('messageLog')
@@ -34,12 +54,220 @@
         // verbinden met server
         socket.on('connect', () => {
             addUpdate("Verbonden met server")
+            loadOrders()
         })
 
-        // vraag data aan server
-        const ListOrders = () => {
-
+        // laad alle orders
+        const fetchOrders = async () => {
+            try {
+                addUpdate('Orders halen bij server...')
+                const response = await fetch("/api/orders")
+                if (!response.ok) {throw new Error(`HTTP ${response.status}: ${response.statusText}`)}
+                const orders = await response.json()
+                addUpdate(`${orders.length} orders geladen`)
+                return orders
+            } catch(err) {
+                addUpdate('Error fetching orders:', err)
+                return []
+            }
         }
+
+        // zet de orders in een tabel
+        const renderOrders = () => {
+            const tbody = document.getElementById('orderTable')
+            // filter op tab
+            let filteredOrders = allOrders
+            if (currentTab !== 'all') {
+                filteredOrders = allOrders.filter(order => order.status === currentTab)
+            }
+            if (filteredOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty">Geen orders in deze categorie</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredOrders.map(order => `
+                <tr id="order-row-${order.id}">
+                    <td><strong>#${order.id}</strong></td>
+                    <td>${order.customer_name}</td>
+                    <td>${order.type}</td>
+                    <td>${order.driver_name || '-'}</td>
+                    <td>
+                        <span class="status-badge ${order.status}">${order.status}</span>
+                    </td>
+                    <td>
+                        ${getActionButton(order)}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // button op basis van de status
+        function getActionButton(order) {
+            switch(order.status) {
+                case 'pending':
+                    return `<button class="action-btn" onclick="updateStatus(${order.id}, 'paid')">Mark Paid</button>`;
+                
+                case 'paid':
+                    return `<button class="action-btn" onclick="updateStatus(${order.id}, 'preparing')">Start Preparing</button>`;
+                
+                case 'preparing':
+                    return `<button class="action-btn" onclick="updateStatus(${order.id}, 'ready')">Mark Ready</button>`;
+                
+                case 'ready':
+                    if (order.type === 'pickup') {
+                        return `<button class="action-btn" onclick="updateStatus(${order.id}, 'delivered')">Mark Picked Up</button>`;
+                    } else {
+                        return `<button class="action-btn" onclick="assignDriver(${order.id})">Assign Driver</button>`;
+                    }
+                
+                case 'loaded_for_delivery':
+                    return `<em>Wacht op driver...</em>`;
+                
+                case 'on_route':
+                    return `<em>Onderweg...</em>`;
+                
+                case 'delivered':
+                    return `<em>✅ Voltooid</em>`;
+                
+                default:
+                    return '';
+            }
+        }
+
+        // laad de orders in de tabel = fetch + render
+        const loadOrders = async () => {
+            allOrders = await fetchOrders()
+            renderOrders()
+        }
+
+        //tabs
+            // tabs voor de orders
+        let allOrders = []
+        let currentTab = 'all'
+            // tabs switching
+        switchTab = (tabName) => {
+            currentTab = tabName
+            document.querySelectorAll('.tab').forEach(tab => {tab.classList.remove('active')})
+            event.target.classList.add('active')
+            renderOrders()
+        }
+    
+
+        // luister naar of er een status is aangepast
+        // luister naar of er een status is aangepast
+socket.on('order:status_changed', (data) => {
+    console.log('═══════════════════════════════════');
+    console.log('📥 RAW DATA:', data);
+    console.log('📥 order_id:', data.order_id, typeof data.order_id);
+    console.log('📥 status:', data.status);
+    console.log('📦 allOrders BEFORE:', JSON.parse(JSON.stringify(allOrders)));
+    
+    const { order_id, status, order, timestamp } = data;
+    
+    addUpdate(`🔄 Order ${order_id} → ${status}`);
+    
+    // Try both number and string
+    let foundOrder = allOrders.find(o => o.id === order_id);
+    
+    if (!foundOrder && typeof order_id === 'string') {
+        console.log('⚠️ Trying with parseInt...');
+        foundOrder = allOrders.find(o => o.id === parseInt(order_id));
+    }
+    
+    if (!foundOrder && typeof order_id === 'number') {
+        console.log('⚠️ Trying with string conversion...');
+        foundOrder = allOrders.find(o => o.id === order_id.toString());
+    }
+    
+    if (foundOrder) {
+        console.log('✅ FOUND order:', foundOrder);
+        console.log('📝 OLD status:', foundOrder.status);
+        
+        foundOrder.status = status;
+        
+        console.log('📝 NEW status:', foundOrder.status);
+        
+        if (order && order.driver_name) {
+            foundOrder.driver_name = order.driver_name;
+        }
+    } else {
+        console.log('❌ NOT FOUND! Reloading...');
+        console.log('Available IDs:', allOrders.map(o => o.id));
+        loadOrders();
+        return;
+    }
+    
+    console.log('📦 allOrders AFTER:', JSON.parse(JSON.stringify(allOrders)));
+    console.log('🔄 Calling renderOrders()...');
+    
+    renderOrders();
+    
+    console.log('🎨 renderOrders() completed');
+    
+    // Highlight
+    setTimeout(() => {
+        const row = document.getElementById(`order-row-${order_id}`);
+        console.log('🔍 Looking for row:', `order-row-${order_id}`, row);
+        
+        if (row) {
+            console.log('✨ Highlighting!');
+            row.style.backgroundColor = 'yellow';
+            setTimeout(() => { row.style.backgroundColor = ''; }, 1000);
+        } else {
+            console.log('⚠️ Row not found in DOM');
+        }
+    }, 100);
+    
+    console.log('═══════════════════════════════════');
+});
+
+        // update status of the order and buttons
+        async function updateStatus(orderId,newStatus) {
+            try {
+                addUpdate(`update order ${orderId} to ${newStatus}`)
+                const response = await fetch(`/api/orders/${orderId}/status`, {
+                    method:'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({status: newStatus})
+                })
+                if (!response.ok) {throw new Error(`HTTP ${response.status}`)}
+                const result = await response.json()
+                addUpdate(`order ${orderId} updated`)
+            } catch (error) {
+                console.error('Error updating status')
+                addUpdate(`Error: ${error.message}`)
+            }
+        }
+
+        // assign a driver to a order
+        async function assignDriver(orderId) {
+        const driverId = prompt('Driver ID:', '1')
+        
+        if (!driverId) return
+        
+        try {
+            addUpdate(`📤 Assign driver ${driverId} to order ${orderId}`)
+            
+            const response = await fetch(`/api/orders/${orderId}/assign-driver`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ driver_id: parseInt(driverId) })
+            })
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`)
+            }
+            
+            const result = await response.json()
+            addUpdate(`✅ Driver ${driverId} toegewezen`)
+            
+            // UI updates via Socket.IO broadcast
+            
+        } catch(err) {
+            console.error('Error assigning driver:', err)
+            addUpdate(`❌ Error: ${err.message}`)
+            alert('Error assigning driver: ' + err.message)
+        }
+    }
+        
     </script>
 </body>
 </html>

@@ -11,6 +11,7 @@ const path = require('path')
 
 
 //middleware: voor mij nog onbekend maar zal later miss duidelijk worden
+app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(express.static('public'))
 
