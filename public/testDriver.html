@@ -8,7 +8,7 @@
 <body>
     <h1>Welcome to the driver dashboard</h1>
 
-    <p>Driver: <strong id="driverName">-</strong>- ID: <strong id="driverId">-</strong></p>
+    <p>Driver: <strong id="driverName">-</strong> - ID: <strong id="driverId">-</strong> - branch-id: <strong id="branchId">-</strong></p>
 
     <h2>My orders</h2>
     <div id="orders">Loading...</div>
@@ -45,8 +45,10 @@
                 const response = await fetch(`/api/drivers/${DRIVER_ID}`)
                 if (!response.ok) {throw new Error('Driver not found')}
                 const driver = await response.json()
+                console.log(driver)
                 document.getElementById('driverName').textContent = driver.name
                 document.getElementById('driverId').textContent = driver.id
+                document.getElementById('branchId').textContent = driver.branch_id
                 addUpdate(`ingelogd als ${driver.name}`)
             } catch(err) {
                 alert(`driver ${DRIVER_ID} niet gevonden!`)
@@ -157,6 +159,24 @@
         socket.on(('error', (data) => {
             addUpdate(`error: ${data.message}`)
         }))
+
+        // Nieuwe order toegewezen aan deze driver
+        socket.on('order:status_changed', (data) => {
+            const { order_id, status, order } = data;
+
+            // Only care about orders assigned to THIS driver
+            if (order && order.driver_id !== DRIVER_ID) return;
+
+            addUpdate(`🔄 Order #${order_id} → ${status}`);
+
+            if (status === 'loaded_for_delivery') {
+                // New order assigned → full reload to add it to the list
+                loadOrders();
+            } else {
+                // Status update on existing order → just update the card
+                updateOrder(order_id, status);
+            }
+        });
     </script>
 </body>
 </html>

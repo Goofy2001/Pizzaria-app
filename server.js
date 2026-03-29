@@ -15,6 +15,10 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(express.static('public'))
 
+// socket.IO setup
+const initializeSocket = require('./sockets')
+const io = initializeSocket(server)
+app.set('io', io)
 
 //TEST
 app.get('/', function(req, res) {
@@ -40,14 +44,11 @@ const analytics = require('./routes/analytics')
 app.use('/api/about', about)
 app.use('/api/echo', echo)
 app.use('/api/branch', branch)
-app.use('/api/orders', orders)
+app.use('/api/orders', orders(io))
 app.use('/api/drivers', drivers)
 app.use('/api/analytics', analytics)
 
-// socket.IO setup
-const initializeSocket = require('./sockets')
-const io = initializeSocket(server)
-app.set('io', io)
+
 
 // definieer de localhost port
 const port = process.env.PORT || 8000
