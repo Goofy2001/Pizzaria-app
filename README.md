@@ -1,12 +1,62 @@
 # Pizzaria-app
 
-## week 8/26: 
-### Server en database opstellen
-- Openstellen van een server (server.js)
-- Het maken van een connectie met database op de server (config/database.js)
-- Toevoegen/verwijder van de datatables: branch, drivers, orders, reservations (scripts/init_db.js; scripts/drop_table.js)
-- Invoegen van test-data (scripts/insert_testData.js)
+Project is opgesplitst in:
 
-### API routes opstellen
-api-routes zijn functies om de data in de data-tables bij te werken
-- voor volgende routes zijn enkele functies gemaakt: branch, orders, drivers 
+- `backend/` → Express + Socket.IO + PostgreSQL API
+- `frontend/` → React + Vite client
+
+## Snelle setup
+
+1. Kopieer `backend/.env.example` naar `backend/.env`
+2. Vul je PostgreSQL gegevens in (`PGUSER`, `PGPASSWORD`, ...)
+3. Zet een sterke `INTERNAL_API_KEY`
+4. Installeer alles:
+
+```bash
+npm run install:all
+```
+
+## Runnen
+
+Terminal 1 (backend):
+
+```bash
+npm run dev:backend
+```
+
+Terminal 2 (frontend):
+
+```bash
+npm run dev:frontend
+```
+
+Standaard:
+
+- Backend: `http://localhost:8000`
+- Frontend (Vite): `http://localhost:5173`
+
+Vite proxyt automatisch `/api` en `/socket.io` naar de backend.
+
+### Beveiliging
+
+- `POST`, `PATCH`, `PUT`, `DELETE` op `/api/branch`, `/api/orders`, `/api/drivers` vereisen header `x-api-key`
+- Voorbeeld:
+
+```bash
+curl -X PATCH http://localhost:8000/api/orders/1/status \
+	-H "Content-Type: application/json" \
+	-H "x-api-key: jouw-api-key" \
+	-d '{"status":"ready"}'
+```
+
+- Healthcheck endpoint: `GET /health`
+- Test endpoint staat enkel aan buiten productie: `GET /test`
+
+### Login voor frontend app
+
+- Login endpoint: `POST /api/auth/login`
+- Vereiste body: `role` (`front` of `driver`), `identifier` (branch/driver id), `password`
+- Zet in `backend/.env`:
+	- `FRONT_LOGIN_PASSWORD`
+	- `DRIVER_LOGIN_PASSWORD`
+
