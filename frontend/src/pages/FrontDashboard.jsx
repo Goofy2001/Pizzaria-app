@@ -3,6 +3,7 @@ import { io } from 'socket.io-client'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import DashboardLayout from '../components/DashboardLayout.jsx'
+import { getFavorites, toggleFavorite } from '../lib/favorites.js'
 import { parseApiError } from '../lib/api.js'
 import { useParams } from 'react-router-dom'
 
@@ -30,6 +31,7 @@ export default function FrontDashboard() {
   const [assigningOrderId, setAssigningOrderId] = useState(null)
   const [branch, setBranch] = useState(null)
   const [branchDrivers, setBranchDrivers] = useState([])
+  const [favoriteDrivers, setFavoriteDrivers] = useState(new Set(getFavorites('drivers')))
 
   const activeDeliveryStatuses = ['loaded_for_delivery', 'on_route']
 
@@ -383,6 +385,11 @@ export default function FrontDashboard() {
     }
   }
 
+  function handleToggleFavoriteDriver(driverId) {
+    toggleFavorite('drivers', Number(driverId))
+    setFavoriteDrivers(new Set(getFavorites('drivers')))
+  }
+
   async function loadOrders() {
     try {
       const response = await fetch(`/api/orders/branch/${branchId}`)
@@ -571,13 +578,23 @@ export default function FrontDashboard() {
                               {getDriverRouteTarget(driver).label} · {getDriverRouteTarget(driver).subtitle}
                             </div>
                           </div>
-                          {driver.latitude === null || driver.longitude === null || driver.latitude === undefined || driver.longitude === undefined ? (
-                            <span className="badge text-bg-secondary">Geen GPS</span>
-                          ) : driver.is_busy ? (
-                            <span className="badge text-bg-danger">Bezig</span>
-                          ) : (
-                            <span className="badge text-bg-success">Beschikbaar</span>
-                          )}
+                          <div className="d-flex align-items-center gap-2">
+                            <button
+                              type="button"
+                              className={`btn btn-sm ${favoriteDrivers.has(Number(driver.id)) ? 'btn-warning' : 'btn-outline-secondary'}`}
+                              onClick={() => handleToggleFavoriteDriver(driver.id)}
+                              aria-label="toggle favorite"
+                            >
+                              {favoriteDrivers.has(Number(driver.id)) ? '★' : '☆'}
+                            </button>
+                            {driver.latitude === null || driver.longitude === null || driver.latitude === undefined || driver.longitude === undefined ? (
+                              <span className="badge text-bg-secondary">Geen GPS</span>
+                            ) : driver.is_busy ? (
+                              <span className="badge text-bg-danger">Bezig</span>
+                            ) : (
+                              <span className="badge text-bg-success">Beschikbaar</span>
+                            )}
+                          </div>
                         </li>
                       ))}
                     </ul>
