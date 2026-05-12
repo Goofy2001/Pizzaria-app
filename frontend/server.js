@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.join(__dirname, 'dist')
 const indexFile = path.join(distDir, 'index.html')
-const PORT = Number(process.env.PORT || 5174)
+const PORT = Number(process.env.PORT || 3000)
 const API_URL = process.env.VITE_API_URL || 'http://localhost:8000'
 
 const mimeTypes = {
