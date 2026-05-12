@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.join(__dirname, 'dist')
 const indexFile = path.join(distDir, 'index.html')
 const PORT = Number(process.env.PORT || 5174)
+const API_URL = process.env.VITE_API_URL || 'http://localhost:8000'
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -43,8 +44,13 @@ const server = http.createServer((req, res) => {
         return
       }
 
+      // Inject API URL into the HTML
+      let html = indexData.toString()
+      const apiScript = `<script>window.__API_URL__ = '${API_URL}';</script>`
+      html = html.replace('</head>', `${apiScript}</head>`)
+      
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-      res.end(indexData)
+      res.end(html)
     })
   })
 })
