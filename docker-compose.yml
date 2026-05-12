@@ -20,8 +20,8 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: pizzeria-backend
     environment:
       NODE_ENV: ${NODE_ENV:-production}
@@ -42,8 +42,8 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: pizzeria-frontend
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}

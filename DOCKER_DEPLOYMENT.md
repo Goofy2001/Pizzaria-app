@@ -2,9 +2,9 @@
 
 ## Files Created
 
-- `Dockerfile.backend` - Docker image for Express backend
-- `Dockerfile.frontend` - Docker image for React frontend with Nginx
-- `docker-compose.yml` - Local development with database
+- `backend/Dockerfile` - Docker image for Express backend
+- `frontend/Dockerfile` - Docker image for React frontend with Nginx
+- `docker-compose.yml` - Orchestrates all services locally
 - `frontend/nginx.conf` - Nginx configuration for frontend
 - `.dockerignore` - Files to exclude from Docker images
 - `.env.example` - Environment variables template
@@ -47,54 +47,93 @@ docker-compose down
 
 ### 1. Push to GitHub
 ```bash
-git add .
-git commit -m "Add Docker configuration"
-git push origin main
+git add . && git commit -m "Add Docker setup" && git push
 ```
 
-### 2. Create Railway Project
-- Go to [railway.app](https://railway.app)
-- Sign up with GitHub
-- Click "Create New Project"
-- Select "Deploy from GitHub repo"
-- Select your pizzeria-app repository
+### 2. Create Railway Project & Login
+1. Go to [railway.app](https://railway.app)
+2. Click **"Login with GitHub"**
+3. Authorize Railway
+4. Click **"Create New Project"**
+5. Select **"Deploy from GitHub repo"**
+6. Find and select **pizzeria-app** repository
 
-### 3. Configure Services
+### 3. Railway Auto-Detection
+Railway will detect your Dockerfiles and create services. Go to **"Services"** panel.
 
-#### Backend Service
-1. Click "New Service" → "GitHub Repo"
-2. Select your repo
-3. Set Build Command: `npm install --prefix backend`
-4. Set Start Command: `npm start --prefix backend`
+You should have (or need to add):
+- ✅ One service auto-created from repo
+- ⚠️ You need to create 2 more services
 
-#### Frontend Service
-1. Click "New Service" → "GitHub Repo"
-2. Same repo
-3. Set Build Command: `npm run build --prefix frontend`
-4. Set Start Command: (leave empty - Nginx serves static files)
+### 4. Add Missing Services
 
-#### Database Service
-1. Click "New Service" → "Database" → "PostgreSQL"
-2. Railway creates database automatically
+#### Service: Frontend
+1. Click **"+ New Service"** → **"GitHub Repo"**
+2. Select pizzeria-app repo again
+3. In settings:
+   - **Root Directory**: `frontend`
+   - **Dockerfile**: `Dockerfile`
+   - Save
 
-### 4. Environment Variables
-Set in Railway dashboard:
+#### Service: Backend  
+1. Click **"+ New Service"** → **"GitHub Repo"**
+2. Select pizzeria-app repo
+3. In settings:
+   - **Root Directory**: `backend`
+   - **Dockerfile**: `Dockerfile`
+   - Save
+
+#### Service: Database (PostgreSQL)
+1. Click **"+ New Service"** → **"Database"** → **"PostgreSQL"**
+2. Railway creates it automatically
+
+### 5. Configure Environment Variables
+
+Go to each service → **"Variables"** tab → Add these:
+
+**Backend Service:**
 ```
 NODE_ENV=production
 PORT=8000
 PGHOST=${{Postgres.PGHOST}}
-PGUSER=${{Postgres.PGUSER}}
 PGPORT=${{Postgres.PGPORT}}
+PGUSER=${{Postgres.PGUSER}}
 PGPASSWORD=${{Postgres.PGPASSWORD}}
-PGDATABASE=${{Postgres.PGDATABASE}}
-CORS_ORIGIN=https://your-frontend-domain.railway.app
-VITE_API_URL=https://your-backend-domain.railway.app
+PGDATABASE=pizzeria
+RATE_LIMIT_MAX=300
+CORS_ORIGIN=${{Frontend.RAILWAY_PUBLIC_DOMAIN}}
 ```
 
-### 5. Deploy
-Railway auto-deploys on every push. Your app will be live at:
-- **Frontend**: `https://your-app-xxx.railway.app`
-- **Backend**: `https://your-backend-xxx.railway.app`
+**Frontend Service:**
+```
+VITE_API_URL=https://${{Backend.RAILWAY_PUBLIC_DOMAIN}}
+```
+
+**PostgreSQL:**
+- Usually auto-configured by Railway
+
+### 6. Deploy & Generate URLs
+
+1. Click **"Deploy"** button (or auto-deploys on push)
+2. Wait for building to complete (green checkmark ✅)
+3. For each service → **"Networking"** tab → **"Generate Domain"**
+
+**Your app will be live at:**
+- Frontend: `https://pizzeria-xxx.railway.app`
+- Backend: `https://pizzeria-backend-xxx.railway.app`
+- Database: Managed by Railway (private)
+
+### 7. Test It Works
+
+```bash
+# Test backend health
+curl https://pizzeria-backend-xxx.railway.app/health
+
+# Visit frontend in browser
+https://pizzeria-xxx.railway.app
+```
+
+**Congrats! 🎉 Your app is live!**
 
 ---
 
