@@ -77,4 +77,4 @@ app.use('/api/analytics', analytics)
 const port = process.env.PORT || 8000
 
 // put server online
-server.listen(port, function() { console.log("server is running on port " + port) })
+server.listen(port, '0.0.0.0', function() { console.log("server is running on port " + port) })
