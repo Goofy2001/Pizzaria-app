@@ -60,3 +60,83 @@ curl -X PATCH http://localhost:8000/api/orders/1/status \
 	- `FRONT_LOGIN_PASSWORD`
 	- `DRIVER_LOGIN_PASSWORD`
 
+## Productie (op internet)
+
+Simpelste aanpak: host enkel de backend server en laat die ook de frontend build serveren.
+
+1. Build frontend:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+2. Start backend in productie:
+
+```bash
+cd ../backend
+npm install
+NODE_ENV=production npm start
+```
+
+3. Zet minimaal deze env variabelen op je host:
+
+- `PORT` (meestal automatisch door hostingplatform)
+- `NODE_ENV=production`
+- `CORS_ORIGIN=https://jouw-domein.tld`
+- `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`
+- `FRONT_LOGIN_PASSWORD`, `DRIVER_LOGIN_PASSWORD`
+
+4. Open je domein:
+
+- Frontend draait op `/`
+- API blijft op `/api/...`
+- Socket.IO blijft op `/socket.io/...`
+
+## Deploy op Render
+
+Je project bevat nu een blueprint bestand: `render.yaml`.
+
+### Optie A (snelste): via Blueprint
+
+1. Push `pizzeria-app` naar GitHub.
+2. In Render: **New +** → **Blueprint**.
+3. Koppel je repo en selecteer `pizzeria-app/render.yaml`.
+4. Zet deze env vars in de web service:
+	- `CORS_ORIGIN=https://<jouw-render-url>`
+	- `FRONT_LOGIN_PASSWORD=<sterk-wachtwoord>`
+	- `DRIVER_LOGIN_PASSWORD=<sterk-wachtwoord>`
+	- (optioneel) `APP_LOGIN_PASSWORD=<fallback-wachtwoord>`
+5. Deploy.
+
+Na deploy gebruik je:
+
+- `https://<jouw-render-url>/` voor de frontend
+- `https://<jouw-render-url>/api/...` voor de API
+
+### Optie B: manueel (zonder blueprint)
+
+Maak in Render:
+
+- 1 PostgreSQL service
+- 1 Web Service (Node)
+
+Instellingen web service:
+
+- Build Command:
+
+```bash
+npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci
+```
+
+- Start Command:
+
+```bash
+npm --prefix backend start
+```
+
+- Health Check Path: `/health`
+
+Koppel daarna dezelfde env vars als bij Optie A en map de PostgreSQL waarden naar `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`.
+

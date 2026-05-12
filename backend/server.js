@@ -71,6 +71,18 @@ app.use('/api/orders', orders(io))
 app.use('/api/drivers', drivers)
 app.use('/api/analytics', analytics)
 
+if (process.env.NODE_ENV === 'production') {
+    const frontendDistPath = path.resolve(__dirname, '../frontend/dist')
+    app.use(express.static(frontendDistPath))
+
+    app.get('/{*splat}', function(req, res, next) {
+        if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+            return next()
+        }
+        res.sendFile(path.join(frontendDistPath, 'index.html'))
+    })
+}
+
 
 
 // definieer de localhost port

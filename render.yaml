@@ -1,0 +1,50 @@
+databases:
+  - name: pizzeria-db
+    databaseName: pizzeria
+    plan: free
+    user: pizzeria
+
+services:
+  - type: web
+    name: pizzeria-app
+    env: node
+    plan: free
+    buildCommand: |
+      npm --prefix frontend ci
+      npm --prefix frontend run build
+      npm --prefix backend ci
+    startCommand: npm --prefix backend start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FRONT_LOGIN_PASSWORD
+        sync: false
+      - key: DRIVER_LOGIN_PASSWORD
+        sync: false
+      - key: APP_LOGIN_PASSWORD
+        sync: false
+      - key: RATE_LIMIT_MAX
+        value: 300
+      - key: PGHOST
+        fromDatabase:
+          name: pizzeria-db
+          property: host
+      - key: PGPORT
+        fromDatabase:
+          name: pizzeria-db
+          property: port
+      - key: PGDATABASE
+        fromDatabase:
+          name: pizzeria-db
+          property: database
+      - key: PGUSER
+        fromDatabase:
+          name: pizzeria-db
+          property: user
+      - key: PGPASSWORD
+        fromDatabase:
+          name: pizzeria-db
+          property: password
