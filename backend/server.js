@@ -9,7 +9,6 @@ const cors = require('cors')
 const rateLimit = require('express-rate-limit')
 const app = express()
 const server = http.createServer(app) // http server maken
-const path = require('path')
 
 
 
@@ -53,23 +52,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // import routes
-const about = require('./routes/about')
-const echo = require('./routes/echo')
 const authentication = require('./routes/authentication')
 const branch = require('./routes/branch')
 const orders = require('./routes/orders')
 const drivers = require('./routes/drivers')
-const analytics = require('./routes/analytics')
 
 // put routes online
 // Route registration: each router handles its own API endpoints.
-app.use('/api/about', about)
-app.use('/api/echo', echo)
 app.use('/api/auth', authentication)
 app.use('/api/branch', branch)
 app.use('/api/orders', orders(io))
 app.use('/api/drivers', drivers)
-app.use('/api/analytics', analytics)
 
 
 

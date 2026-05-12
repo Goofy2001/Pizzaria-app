@@ -1,5 +1,4 @@
 const { Server } = require('socket.io')
-const testHandlers = require('./handlers/testHandlers')
 const driverHandlers = require('./handlers/driverHandlers')
 
 // Create Socket.IO server and wire all real-time event handlers.
@@ -23,7 +22,6 @@ function initializeSocket(server) {
         })
 
         // Register handlers
-        testHandlers(io, socket)
         driverHandlers(io, socket)
         // Disconnect
         socket.on('disconnect', function() {
