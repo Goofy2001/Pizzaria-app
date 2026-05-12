@@ -10,6 +10,32 @@ body {
   color: #1d1d1f;
 }
 
+/* Dark theme overrides applied when .theme-dark is set on documentElement */
+.theme-dark body {
+  background: #0b1220;
+  color: #e6eef8;
+}
+
+.theme-dark .auth-card,
+.theme-dark .dashboard-card {
+  background: #071022;
+  color: #e6eef8;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.theme-dark .error-box {
+  background: #3b0b0b;
+  color: #ffb3b3;
+}
+
+.theme-dark .actions button,
+.theme-dark .auth-card button,
+.theme-dark .dashboard-card button {
+  background: #1f6feb;
+  color: #fff;
+}
+
 #root {
   min-height: 100vh;
 }

@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
+import { initTheme } from './lib/theme.js'
 import App from './App.jsx'
 
 // Wrap app with StrictMode + BrowserRouter so all pages can use React Router.
@@ -14,3 +15,10 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Initialize theme early so CSS class is present before React paints
+try {
+  initTheme()
+} catch (_) {
+  // ignore
+}

@@ -116,31 +116,78 @@ export default function DriverDashboard() {
     }
   }
 
+  async function geocodeAddress(address) {
+    if (!address) { return null }
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${address}, Belgium`)}`,
+      {
+        headers: {
+          Accept: 'application/json'
+        }
+      }
+    )
+
+    if (!response.ok) { return null }
+
+    const matches = await response.json()
+    if (!Array.isArray(matches) || matches.length === 0) { return null }
+
+    return {
+      lat: Number(matches[0].lat),
+      lng: Number(matches[0].lon)
+    }
+  }
+
   // Open in-app navigation page and pass needed order/driver context.
-  async function openNavigationWindow(order) {
+  async function openNavigationWindow(order = null) {
+    const isBranchReturn = !order
     const params = new URLSearchParams()
     params.set('driver_id', String(driverId))
-    params.set('order_id', String(order.id))
-    params.set('customer_name', order.customer_name || '')
-    params.set('delivery_street', order.delivery_streetName || order.delivery_streetname || '')
-    params.set('delivery_house_number', String(order.delivery_houseNumber || ''))
-    params.set('delivery_postal_code', String(order.delivery_postalCode || ''))
-    params.set('delivery_municipality', order.delivery_municipality || '')
+    params.set('order_id', String(order?.id || 0))
     if (driver?.branch_id) {
       params.set('branch_id', String(driver.branch_id))
     }
 
     try {
-      const destination = await geocodeOrderDestination(order)
-      if (destination) {
-        params.set('dest_lat', String(destination.lat))
-        params.set('dest_lng', String(destination.lng))
+      if (isBranchReturn) {
+        params.set('customer_name', 'Terug naar branch')
+
+        if (driver?.branch_id) {
+          const branchResponse = await fetch(`/api/branch/${driver.branch_id}`)
+          if (branchResponse.ok) {
+            const branch = await branchResponse.json()
+            params.set('customer_name', `Terug naar ${branch.name || 'branch'}`)
+            params.set('delivery_street', branch.address || '')
+            params.set('delivery_house_number', '')
+            params.set('delivery_postal_code', '')
+            params.set('delivery_municipality', '')
+
+            const destination = await geocodeAddress(branch.address)
+            if (destination) {
+              params.set('dest_lat', String(destination.lat))
+              params.set('dest_lng', String(destination.lng))
+            }
+          }
+        }
+      } else {
+        params.set('customer_name', order.customer_name || '')
+        params.set('delivery_street', order.delivery_streetName || order.delivery_streetname || '')
+        params.set('delivery_house_number', String(order.delivery_houseNumber || ''))
+        params.set('delivery_postal_code', String(order.delivery_postalCode || ''))
+        params.set('delivery_municipality', order.delivery_municipality || '')
+
+        const destination = await geocodeOrderDestination(order)
+        if (destination) {
+          params.set('dest_lat', String(destination.lat))
+          params.set('dest_lng', String(destination.lng))
+        }
       }
     } catch (_) {
       // fallback zonder destination coords
     }
 
-    navigate(`/driver/${driverId}/nav/${order.id}?${params.toString()}`)
+    navigate(`/driver/${driverId}/nav/${order?.id || 0}?${params.toString()}`)
   }
 
   // Trigger backend event to start delivery, then open navigation page.
@@ -193,12 +240,11 @@ export default function DriverDashboard() {
           <button className="btn btn-outline-secondary" type="button" onClick={loadOrders}>Refresh orders</button>
           <button className="btn btn-outline-dark" type="button" onClick={openHistoryWindow}>Open history</button>
           <button
-            className={`btn btn-outline-primary ${navigationOrder ? '' : 'disabled'}`}
+            className="btn btn-outline-primary"
             type="button"
-            onClick={() => navigationOrder && openNavigationWindow(navigationOrder)}
-            disabled={!navigationOrder}
+            onClick={() => openNavigationWindow(navigationOrder)}
           >
-            Open navigatie
+            Open navigatie{navigationOrder ? '' : ' naar branch'}
           </button>
         </div>
       </div>

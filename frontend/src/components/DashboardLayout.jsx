@@ -1,9 +1,15 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useState, useEffect } from 'react-router-dom'
 import { clearSession, getSession } from '../lib/session.js'
+import { getTheme, toggleTheme } from '../lib/theme.js'
 
 // Shared page shell used by front and driver dashboards.
 export default function DashboardLayout({ title, subtitle, children }) {
   const navigate = useNavigate()
+  const [theme, setTheme] = useState(getTheme())
+
+  useEffect(() => {
+    setTheme(getTheme())
+  }, [])
 
   // Logout flow: clear local session and return to login page.
   async function logout() {
@@ -32,9 +38,17 @@ export default function DashboardLayout({ title, subtitle, children }) {
           <h1 className="h3 mb-1">{title}</h1>
           <p className="text-muted mb-0">{subtitle}</p>
         </div>
-        <button className="btn btn-outline-secondary" type="button" onClick={logout}>
-          Uitloggen
-        </button>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-secondary" type="button" onClick={() => {
+            const next = toggleTheme()
+            setTheme(next)
+          }} title="Wissel licht/donker modus">
+            {theme === 'dark' ? '🌙 Donker' : '☀️ Licht'}
+          </button>
+          <button className="btn btn-outline-secondary" type="button" onClick={logout}>
+            Uitloggen
+          </button>
+        </div>
       </div>
       {children}
     </main>

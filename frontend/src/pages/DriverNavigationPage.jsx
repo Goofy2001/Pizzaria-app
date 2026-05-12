@@ -39,6 +39,7 @@ function DriverNavigationPage() {
   const municipality = searchParams.get('delivery_municipality') || ''
   const branchId = searchParams.get('branch_id') || ''
   const appOrigin = searchParams.get('app_origin') || window.location.origin
+  const isBranchReturn = Number(orderId) === 0
 
   // Human-readable address string from query params.
   const addressLabel = useMemo(() => {
@@ -179,6 +180,10 @@ function DriverNavigationPage() {
 
   // Notify backend that this delivery is complete.
   function completeDelivery() {
+    if (isBranchReturn) {
+      return
+    }
+
     if (!socketRef.current) {
       return
     }
@@ -301,7 +306,7 @@ function DriverNavigationPage() {
       <div className="position-fixed top-0 start-0 end-0 p-2" style={{ zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.92)' }}>
         <div className="d-flex justify-content-between align-items-center gap-2">
           <div className="flex-grow-1">
-            <div className="small text-muted mb-1">Order #{orderId}</div>
+            <div className="small text-muted mb-1">{isBranchReturn ? 'Terug naar branch' : `Order #${orderId}`}</div>
             <div className="fw-bold" style={{ fontSize: '1.1rem' }}>{eta} · {distance}</div>
           </div>
           <button 
@@ -355,9 +360,11 @@ function DriverNavigationPage() {
               <button className="btn btn-sm btn-primary" type="button" onClick={() => mapRef.current?.setView(currentPositionRef.current || [50.8503, 4.3517], 15)}>
                 📍 Locatie volgen
               </button>
-              <button className="btn btn-sm btn-success" type="button" onClick={completeDelivery} disabled={isCompleting}>
-                {isCompleting ? 'Bezig...' : '✅ Beëindigen'}
-              </button>
+              {!isBranchReturn ? (
+                <button className="btn btn-sm btn-success" type="button" onClick={completeDelivery} disabled={isCompleting}>
+                  {isCompleting ? 'Bezig...' : '✅ Beëindigen'}
+                </button>
+              ) : null}
               <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => navigate(`/driver/${driverId}`)}>
                 ← Terug naar dashboard
               </button>
@@ -369,16 +376,18 @@ function DriverNavigationPage() {
       {/* Floating action buttons - always visible at bottom */}
       <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1000 }}>
         <div className="d-flex flex-column gap-2">
-          <button 
-            className="btn btn-lg btn-success rounded-circle shadow-lg"
-            type="button" 
-            onClick={completeDelivery} 
-            disabled={isCompleting}
-            title="Levering voltooien"
-            style={{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            ✅
-          </button>
+          {!isBranchReturn ? (
+            <button 
+              className="btn btn-lg btn-success rounded-circle shadow-lg"
+              type="button" 
+              onClick={completeDelivery} 
+              disabled={isCompleting}
+              title="Levering voltooien"
+              style={{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              ✅
+            </button>
+          ) : null}
         </div>
       </div>
     </main>

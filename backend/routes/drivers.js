@@ -65,6 +65,9 @@ router.get('/selection/branch/:branch_id', async function(req, res) {
                 d.id,
                 d.name,
                 d.status,
+                d.latitude,
+                d.longitude,
+                d.last_location_update,
                 d.branch_id,
                 EXISTS (
                     SELECT 1
