@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      NODE_ENV: development
+      PORT: 8000
+      DATABASE_URL: postgresql://postgres.oeirwlmmrrklylggmpzp:%23Stabilo04042001@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+      USE_SUPABASE: "true"
+      CORS_ORIGIN: http://localhost:5173,http://localhost:8000
+      INTERNAL_API_KEY: vervang-met-sterke-sleutel
+      FRONT_LOGIN_PASSWORD: front
+      DRIVER_LOGIN_PASSWORD: driver
+    networks:
+      - pizzeria-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - pizzeria-net
+
+networks:
+  pizzeria-net:
+    driver: bridge
