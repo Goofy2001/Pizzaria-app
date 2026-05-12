@@ -37,6 +37,34 @@ Standaard:
 
 Vite proxyt automatisch `/api` en `/socket.io` naar de backend.
 
+## Docker
+
+Je kunt de volledige stack ook met Docker starten:
+
+```bash
+docker compose up --build
+```
+
+Daarna:
+
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:8000`
+- PostgreSQL: `localhost:5432`
+
+De database wordt bij het opstarten geïnitialiseerd en gevuld met testdata.
+
+## Railway
+
+Voor Railway kun je één service deployen met de root [Dockerfile](Dockerfile).
+
+Instellen:
+
+- voeg een PostgreSQL service toe in Railway
+- laat Railway de `DATABASE_URL` doorgeven aan de backend
+- zet eventueel `PGSSLMODE=require` als Railway dat nodig heeft
+
+De frontend wordt tijdens de build meegebouwd en de backend serveert die op dezelfde URL als de API.
+
 ### Beveiliging
 
 - `POST`, `PATCH`, `PUT`, `DELETE` op `/api/branch`, `/api/orders`, `/api/drivers` vereisen header `x-api-key`

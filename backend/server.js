@@ -10,6 +10,10 @@ const rateLimit = require('express-rate-limit')
 const app = express()
 const server = http.createServer(app) // http server maken
 const path = require('path')
+const fs = require('fs')
+
+const publicDir = path.join(__dirname, 'public')
+const indexFile = path.join(publicDir, 'index.html')
 
 
 
@@ -30,7 +34,7 @@ const apiLimiter = rateLimit({
 
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
-app.use(express.static('public'))
+app.use(express.static(publicDir))
 app.use('/api', apiLimiter)
 
 // socket.IO setup
@@ -70,6 +74,26 @@ app.use('/api/branch', branch)
 app.use('/api/orders', orders(io))
 app.use('/api/drivers', drivers)
 app.use('/api/analytics', analytics)
+
+app.get('*', function(req, res, next) {
+    if (req.method !== 'GET') {
+        return next()
+    }
+
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+        return next()
+    }
+
+    if (!fs.existsSync(indexFile)) {
+        return next()
+    }
+
+    res.sendFile(indexFile, function(err) {
+        if (err) {
+            next(err)
+        }
+    })
+})
 
 
 
