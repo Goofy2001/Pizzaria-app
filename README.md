@@ -110,6 +110,22 @@ Je project bevat nu een blueprint bestand: `render.yaml`.
 	- (optioneel) `APP_LOGIN_PASSWORD=<fallback-wachtwoord>`
 5. Deploy.
 
+Tijdens de Render build worden nu ook de tabellen aangemaakt en testdata geladen via:
+
+- `backend/scripts/init_db.js`
+- `backend/scripts/insert_testData.js`
+
+Dat betekent dat de login direct werkt met testdata, maar ook dat de seed bij een deploy de bestaande inhoud kan overschrijven.
+
+### Database resetten op Render
+
+Als je de data op Render handmatig wilt resetten, open de **Shell** van je web service en run:
+
+```bash
+cd backend && npm run db:reset
+```
+
+Dat doet eerst de tabellen opnieuw aanmaken en daarna de testdata opnieuw invullen.
 Na deploy gebruik je:
 
 - `https://<jouw-render-url>/` voor de frontend
