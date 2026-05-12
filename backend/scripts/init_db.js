@@ -175,7 +175,7 @@ function createTableDELIVERY_HISTORY() {
 
 // Initialize alle tabellen in juiste volgorde
 // Main initialization flow with logging.
-async function init_db() {
+async function init_db(closePool = true) {
     try {
         console.log('🔵 Starting database initialization...\n');
         
@@ -201,9 +201,14 @@ async function init_db() {
     } catch(err) {
         console.error('❌ Error creating tables:', err);
     } finally {
-        await pool.end();
+        if (closePool) {
+            await pool.end();
+        }
     }
 }
 
-// Run script immediately when executed with Node.
-init_db();
+module.exports = { init_db }
+
+if (require.main === module) {
+    init_db();
+}

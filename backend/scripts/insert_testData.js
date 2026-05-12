@@ -184,7 +184,7 @@ function insertTestDataDeliveryHistory() {
 // Main: reset + seed
 // =====================================================
 // Run all seed steps in a fixed order.
-async function fixTestDataTables() {
+async function fixTestDataTables(closePool = true) {
     try {
         await resetDataTables();
 
@@ -196,12 +196,17 @@ async function fixTestDataTables() {
         await insertTestDataDeliveryHistory(); console.log("✅ Delivery history data seeded");
 
         console.log("🎉 All tables successfully reset and seeded!");
-        await pool.end();
     } catch (err) {
         console.error("❌ Failed to seed data tables:", err);
-        await pool.end();
+    } finally {
+        if (closePool) {
+            await pool.end();
+        }
     }
 }
 
-// Run script immediately when executed with Node.
-fixTestDataTables();
+module.exports = { fixTestDataTables }
+
+if (require.main === module) {
+    fixTestDataTables();
+}

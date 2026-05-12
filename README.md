@@ -119,7 +119,30 @@ Dat betekent dat de login direct werkt met testdata, maar ook dat de seed bij ee
 
 ### Database resetten op Render
 
-Als je de data op Render handmatig wilt resetten, open de **Shell** van je web service en run:
+Als je geen Render Shell wilt gebruiken, kun je de database resetten via een beveiligde API-call.
+
+Stel in Render bij je web service deze env var in:
+
+- `INTERNAL_API_KEY=<sterke-geheime-sleutel>`
+
+Dit is de gratis manier; hiervoor heb je geen betaalde Shell nodig.
+
+Daarna kun je de database resetten met een POST request naar:
+
+- `https://<jouw-render-url>/api/admin/reset-db`
+
+Stuur daarbij de header:
+
+- `x-api-key: <zelfde-geheime-sleutel>`
+
+Voorbeeld:
+
+```bash
+curl -X POST https://<jouw-render-url>/api/admin/reset-db \
+	-H "x-api-key: <zelfde-geheime-sleutel>"
+```
+
+Als je toch wél Shell hebt, kan het ook daar met:
 
 ```bash
 cd backend && npm run db:reset
