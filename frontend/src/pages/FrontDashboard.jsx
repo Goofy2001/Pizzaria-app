@@ -5,6 +5,8 @@ import 'leaflet/dist/leaflet.css'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { getFavorites, toggleFavorite } from '../lib/favorites.js'
 import { parseApiError } from '../lib/api.js'
+import { getCached, setCache, clearCache } from '../lib/cache.js'
+import { createIntersectionObserver, disconnectIntersectionObserver } from '../lib/observer.js'
 import { useParams } from 'react-router-dom'
 
 // Front-office dashboard to manage branch orders and assign drivers.
@@ -19,6 +21,8 @@ export default function FrontDashboard() {
   const driverRoutesRef = useRef(new Map())
   const orderDestinationCacheRef = useRef(new Map())
   const branchMarkerRef = useRef(null)
+  const orderTableRef = useRef(null)
+  const orderObserverRef = useRef(null)
 
   const [dashboardTab, setDashboardTab] = useState('orders')
   const [orders, setOrders] = useState([])
@@ -194,6 +198,41 @@ export default function FrontDashboard() {
     }
   }, [dashboardTab, branchDrivers, branchCenter, orders])
 
+  // IntersectionObserver effect: highlight visible order rows as they enter viewport
+  useEffect(() => {
+    if (dashboardTab !== 'orders' || !orderTableRef.current) { return }
+
+    const rows = orderTableRef.current.querySelectorAll('tbody tr[data-order-id]')
+    if (rows.length === 0) { return }
+
+    // Clean up previous observer
+    if (orderObserverRef.current) {
+      disconnectIntersectionObserver(orderObserverRef.current, Array.from(rows))
+    }
+
+    // Create new observer: highlight rows as they become visible
+    orderObserverRef.current = createIntersectionObserver(
+      Array.from(rows),
+      (element, isVisible) => {
+        if (isVisible) {
+          element.style.backgroundColor = 'rgba(0, 123, 255, 0.1)'
+          setTimeout(() => {
+            element.style.backgroundColor = ''
+            element.style.transition = 'background-color 300ms ease-out'
+          }, 500)
+        }
+      },
+      { threshold: 0.5 }
+    )
+
+    return () => {
+      if (orderObserverRef.current) {
+        disconnectIntersectionObserver(orderObserverRef.current, Array.from(rows))
+        orderObserverRef.current = null
+      }
+    }
+  }, [dashboardTab, filteredOrders.length])
+
   function clearDriverMarkers() {
     driverMarkersRef.current.forEach((marker) => marker.remove())
     driverMarkersRef.current.clear()
@@ -342,12 +381,20 @@ export default function FrontDashboard() {
 
   async function loadBranch() {
     try {
+      const cacheKey = `branch_${branchId}`
+      const cached = getCached(cacheKey, 5 * 60 * 1000)
+      if (cached) {
+        setBranch(cached)
+        return
+      }
+
       const response = await fetch(`/api/branch/${branchId}`)
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
 
       const data = await response.json()
+      setCache(cacheKey, data)
       setBranch(data)
     } catch (err) {
       setMessage(err.message)
@@ -356,12 +403,18 @@ export default function FrontDashboard() {
 
   async function loadBranchDrivers() {
     try {
-      const response = await fetch(`/api/drivers/selection/branch/${branchId}`)
-      if (!response.ok) {
-        throw new Error(await parseApiError(response))
+      const cacheKey = `drivers_${branchId}`
+      let drivers = getCached(cacheKey, 5 * 60 * 1000)
+      
+      if (!drivers) {
+        const response = await fetch(`/api/drivers/selection/branch/${branchId}`)
+        if (!response.ok) {
+          throw new Error(await parseApiError(response))
+        }
+        drivers = await response.json()
+        setCache(cacheKey, drivers)
       }
 
-      const drivers = await response.json()
       setBranchDrivers((currentDrivers) => {
         const currentById = new Map(currentDrivers.map((driver) => [Number(driver.id), driver]))
         return drivers.map((driver) => {
@@ -392,11 +445,20 @@ export default function FrontDashboard() {
 
   async function loadOrders() {
     try {
+      const cacheKey = `orders_${branchId}`
+      const cached = getCached(cacheKey, 5 * 60 * 1000)
+      if (cached) {
+        setOrders(cached)
+        setMessage(`${cached.length} orders geladen (cached)`)
+        return
+      }
+
       const response = await fetch(`/api/orders/branch/${branchId}`)
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
       const data = await response.json()
+      setCache(cacheKey, data)
       setOrders(data)
       setMessage(`${data.length} orders geladen`)
     } catch (err) {
@@ -625,7 +687,7 @@ export default function FrontDashboard() {
 
           <div className="card shadow-sm">
             <div className="table-responsive">
-              <table className="table table-striped table-hover mb-0">
+              <table className="table table-striped table-hover mb-0" ref={orderTableRef}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -641,7 +703,7 @@ export default function FrontDashboard() {
                     <tr><td colSpan="6" className="text-center py-4">Geen orders</td></tr>
                   ) : (
                     filteredOrders.map((order) => (
-                      <tr key={order.id}>
+                      <tr key={order.id} data-order-id={order.id}>
                         <td>#{order.id}</td>
                         <td>{order.customer_name}</td>
                         <td>{order.type}</td>
