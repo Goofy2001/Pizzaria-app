@@ -75,7 +75,7 @@ app.use('/api/orders', orders(io))
 app.use('/api/drivers', drivers)
 app.use('/api/analytics', analytics)
 
-app.get('*', function(req, res, next) {
+app.get('/*', function(req, res, next) {
     if (req.method !== 'GET') {
         return next()
     }
