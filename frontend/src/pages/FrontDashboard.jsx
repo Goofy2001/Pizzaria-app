@@ -41,6 +41,12 @@ export default function FrontDashboard() {
 
   const historyStatuses = ['delivered', 'picked_up', 'on_table', 'cancelled']
 
+  const filteredOrders = useMemo(() => orders.filter((order) => {
+    if (activeTab === 'all') { return true }
+    if (activeTab === 'history') { return historyStatuses.includes(order.status) }
+    return order.status === activeTab
+  }), [orders, activeTab])
+
   const branchCenter = useMemo(() => {
     if (branch?.latitude && branch?.longitude) {
       return [Number(branch.latitude), Number(branch.longitude)]
@@ -78,7 +84,8 @@ export default function FrontDashboard() {
       }
 
       setMessage(`Order ${data.order_id} -> ${data.status}`)
-      loadOrders()
+      clearCache(`orders_${branchId}`)
+      loadOrders(true)
 
       const affectedDriverId = Number(data?.order?.driver_id)
       if (!Number.isNaN(affectedDriverId)) {
@@ -401,10 +408,10 @@ export default function FrontDashboard() {
     }
   }
 
-  async function loadBranchDrivers() {
+  async function loadBranchDrivers(forceFresh = false) {
     try {
       const cacheKey = `drivers_${branchId}`
-      let drivers = getCached(cacheKey, 5 * 60 * 1000)
+      let drivers = forceFresh ? null : getCached(cacheKey, 5 * 60 * 1000)
       
       if (!drivers) {
         const response = await fetch(`/api/drivers/selection/branch/${branchId}`)
@@ -443,10 +450,10 @@ export default function FrontDashboard() {
     setFavoriteDrivers(new Set(getFavorites('drivers')))
   }
 
-  async function loadOrders() {
+  async function loadOrders(forceFresh = false) {
     try {
       const cacheKey = `orders_${branchId}`
-      const cached = getCached(cacheKey, 5 * 60 * 1000)
+      const cached = forceFresh ? null : getCached(cacheKey, 5 * 60 * 1000)
       if (cached) {
         setOrders(cached)
         setMessage(`${cached.length} orders geladen (cached)`)
@@ -479,7 +486,10 @@ export default function FrontDashboard() {
       }
 
       setMessage(`Order ${orderId} aangepast naar ${newStatus}`)
-      await loadOrders()
+      clearCache(`orders_${branchId}`)
+      clearCache(`drivers_${branchId}`)
+      await loadOrders(true)
+      await loadBranchDrivers(true)
     } catch (err) {
       setMessage(err.message)
     }
@@ -537,18 +547,14 @@ export default function FrontDashboard() {
       setMessage(`Driver ${driverName} toegewezen aan order ${assigningOrderId}`)
       setShowDriverPicker(false)
       setAssigningOrderId(null)
-      await loadOrders()
-      await loadBranchDrivers()
+      clearCache(`orders_${branchId}`)
+      clearCache(`drivers_${branchId}`)
+      await loadOrders(true)
+      await loadBranchDrivers(true)
     } catch (err) {
       setMessage(err.message)
     }
   }
-
-  const filteredOrders = orders.filter((order) => {
-    if (activeTab === 'all') { return true }
-    if (activeTab === 'history') { return historyStatuses.includes(order.status) }
-    return order.status === activeTab
-  })
 
   function renderAction(order) {
     const isPickupOrder = order.type === 'pick-up' || order.type === 'pickup'
