@@ -1,7 +1,7 @@
 const { Pool } = require('pg')
 
-// database configuration
-// Create one shared PostgreSQL connection pool for the whole backend.
+// instellen van de database
+// Maak connectie met database aan de hand van de .env
 const pool = new Pool({
     user: process.env.PGUSER || 'postgres',
     host: process.env.PGHOST || 'localhost',
@@ -16,10 +16,10 @@ pool.query('select now()', function(err, res) {
     else {console.log("Database verbonden", res.rows[0])}
 })
 
-// Listen for unexpected errors on idle clients.
+// luister voor error en geef een foutmelding
 pool.on('error', function(err) {
     console.error('Onverwachte database fout op idle client:', err)
 })
 
-// maakt functie global
+// maak de functie "pool" globaal zodat deze te gebruiken is overal
 module.exports = pool

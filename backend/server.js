@@ -13,7 +13,7 @@ const path = require('path')
 
 
 
-//middleware: voor mij nog onbekend maar zal later miss duidelijk worden
+//middleware:
 // Security + CORS + request parsing middleware stack.
 app.disable('x-powered-by')
 app.use(helmet())

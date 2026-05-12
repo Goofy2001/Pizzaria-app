@@ -182,19 +182,5 @@ router.patch('/status-toggle', async function(req, res) {
     }
 }) 
 
-
-//DELETE
-//delete :id
-
-//extra
-//post /:id/start-delivery
-//post /:id/complete-delivery
-//get /:id/orders
-//get /:id/history
-//get /available/:branch_id
-//patch :id/status
-//patch :id/location
-
-
 // global maken
 module.exports = router

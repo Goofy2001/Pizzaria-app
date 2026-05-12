@@ -1,7 +1,10 @@
 const pool = require('../../configs/database')
 const ACTIVE_DELIVERY_STATUSES = ['loaded_for_delivery', 'on_route']
 
+//socket.io events
+//--> client/server connecties
 // Register real-time delivery events for drivers.
+
 module.exports = function(io, socket) {
     // Helper: check if driver already has an active delivery.
     async function getActiveDeliveryForDriver(driverId, excludeOrderId = null) {
@@ -128,10 +131,4 @@ module.exports = function(io, socket) {
             socket.emit('error', { message: 'Database fout' })
         }
     })
-    // driver logt uit --> status offline
-
-    // Events to driver (future extension points).
-    // driver krijgt bestelling, max 2
-
-    // driver krijgt route
 }

@@ -130,9 +130,5 @@ router.delete('/:id', async function(req, res) {
 })
 
 
-// EXTRA
-//get :id/drivers
-//get :id/orders
-
 // exporteren van de functies voor de server
 module.exports = router

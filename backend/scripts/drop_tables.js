@@ -21,5 +21,4 @@ async function deleteTables() {
     }
 }
 
-// Run script immediately when file is executed with Node.
 deleteTables()

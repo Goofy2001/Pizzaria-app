@@ -30,27 +30,6 @@ Terminal 2 (frontend):
 npm run dev:frontend
 ```
 
-Standaard:
-
-- Backend: `http://localhost:8000`
-- Frontend (Vite): `http://localhost:5173`
-
-Vite proxyt automatisch `/api` en `/socket.io` naar de backend.
-
-### Beveiliging
-
-- `POST`, `PATCH`, `PUT`, `DELETE` op `/api/branch`, `/api/orders`, `/api/drivers` vereisen header `x-api-key`
-- Voorbeeld:
-
-```bash
-curl -X PATCH http://localhost:8000/api/orders/1/status \
-	-H "Content-Type: application/json" \
-	-H "x-api-key: jouw-api-key" \
-	-d '{"status":"ready"}'
-```
-
-- Healthcheck endpoint: `GET /health`
-- Test endpoint staat enkel aan buiten productie: `GET /test`
 
 ### Login voor frontend app
 
