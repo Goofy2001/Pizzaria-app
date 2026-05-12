@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -9,13 +9,6 @@ COPY . .
 
 RUN npm run build
 
-# Serve with nginx
-FROM nginx:alpine
+EXPOSE 5173
 
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-COPY nginx.conf /etc/nginx/templates/default.conf.template
-
-EXPOSE 8080
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]
