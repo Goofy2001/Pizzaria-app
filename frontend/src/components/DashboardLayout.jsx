@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiUrl } from '../lib/config.js'
 import { clearSession, getSession } from '../lib/session.js'
 import { getTheme, toggleTheme } from '../lib/theme.js'
 
@@ -18,7 +19,7 @@ export default function DashboardLayout({ title, subtitle, children }) {
 
     try {
       if (session?.role === 'driver' && session?.driver_id) {
-        await fetch('/api/auth/logout', {
+        await fetch(apiUrl('/api/auth/logout'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role: 'driver', identifier: session.driver_id })

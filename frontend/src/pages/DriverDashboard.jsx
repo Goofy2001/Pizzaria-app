@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import DashboardLayout from '../components/DashboardLayout.jsx'
+import { API_BASE_URL, apiUrl } from '../lib/config.js'
 import { parseApiError } from '../lib/api.js'
 
 // Driver dashboard: shows active orders and delivery actions.
@@ -18,7 +19,7 @@ export default function DriverDashboard() {
   // Setup socket listeners and initial data load for this driver.
   useEffect(() => {
     let mounted = true
-    const socket = io()
+    const socket = io(API_BASE_URL || window.location.origin)
     socketRef.current = socket
 
     loadDriver()
@@ -59,7 +60,7 @@ export default function DriverDashboard() {
   // Fetch driver profile info.
   async function loadDriver() {
     try {
-      const response = await fetch(`/api/drivers/${driverId}`)
+      const response = await fetch(apiUrl(`/api/drivers/${driverId}`))
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
@@ -73,7 +74,7 @@ export default function DriverDashboard() {
   // Fetch all orders linked to this driver.
   async function loadOrders() {
     try {
-      const response = await fetch(`/api/orders/drivers/${driverId}`)
+      const response = await fetch(apiUrl(`/api/orders/drivers/${driverId}`))
       if (response.status === 404) {
         setOrders([])
         return
@@ -154,7 +155,7 @@ export default function DriverDashboard() {
         params.set('customer_name', 'Terug naar branch')
 
         if (driver?.branch_id) {
-          const branchResponse = await fetch(`/api/branch/${driver.branch_id}`)
+          const branchResponse = await fetch(apiUrl(`/api/branch/${driver.branch_id}`))
           if (branchResponse.ok) {
             const branch = await branchResponse.json()
             params.set('customer_name', `Terug naar ${branch.name || 'branch'}`)
