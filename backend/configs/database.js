@@ -1,13 +1,17 @@
 const { Pool } = require('pg')
 
+const host = process.env.PGHOST || 'localhost'
+const useSsl = process.env.PGSSLMODE === 'require' || /\.supabase\.co$/.test(host)
+
 // database configuration
 // Create one shared PostgreSQL connection pool for the whole backend.
 const pool = new Pool({
     user: process.env.PGUSER || 'postgres',
-    host: process.env.PGHOST || 'localhost',
+    host,
     database: process.env.PGDATABASE || 'pizzeria',
     password: process.env.PGPASSWORD || process.env.postgreSQLww,
-    port: Number(process.env.PGPORT || 5432)
+    port: Number(process.env.PGPORT || 5432),
+    ssl: useSsl ? { rejectUnauthorized: false } : undefined,
 })
 
 //test de connectie met de database
