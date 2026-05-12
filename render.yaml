@@ -10,9 +10,9 @@ services:
     env: node
     plan: free
     buildCommand: |
-      npm --prefix frontend ci
+      npm --prefix frontend install --include=dev
       npm --prefix frontend run build
-      npm --prefix backend ci
+      npm --prefix backend install --include=dev
     startCommand: npm --prefix backend start
     healthCheckPath: /health
     envVars:
