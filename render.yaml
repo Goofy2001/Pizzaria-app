@@ -22,4 +22,4 @@ services:
     env: node
     plan: free
     buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npx serve -l 3000 dist
+    startCommand: cd frontend && npm start
