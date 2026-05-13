@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
-import { apiUrl } from '../config/api.js'
+import { apiUrl, getSocketServerUrl } from '../config/api.js'
 
 // Driver dashboard: shows active orders and delivery actions.
 export default function DriverDashboard() {
@@ -19,7 +19,7 @@ export default function DriverDashboard() {
   // Setup socket listeners and initial data load for this driver.
   useEffect(() => {
     let mounted = true
-    const socket = io()
+    const socket = io(getSocketServerUrl(), { path: '/socket.io' })
     socketRef.current = socket
 
     loadDriver()

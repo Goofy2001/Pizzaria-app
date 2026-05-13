@@ -6,6 +6,15 @@ if (raw.startsWith('http') && !raw.endsWith('/api')) {
   API_BASE_URL = raw.replace(/\/+$/g, '') + '/api'
 }
 
+// Socket.IO should connect to the backend origin, not the frontend host.
+export function getSocketServerUrl() {
+  if (!raw.startsWith('http')) {
+    return undefined
+  }
+
+  return raw.replace(/\/api\/?$/g, '').replace(/\/+$/g, '')
+}
+
 // Build full API endpoint URL
 export function apiUrl(endpoint) {
   return `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`

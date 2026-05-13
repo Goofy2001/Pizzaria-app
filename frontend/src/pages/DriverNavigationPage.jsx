@@ -5,6 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-routing-machine'
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css'
+import { getSocketServerUrl } from '../config/api.js'
 
 // Full-screen map page used during an active delivery.
 function DriverNavigationPage() {
@@ -209,7 +210,7 @@ function DriverNavigationPage() {
       icon: L.divIcon({ html: '🚚', className: 'user-marker', iconSize: [36, 36] })
     }).addTo(mapRef.current)
 
-    socketRef.current = io()
+    socketRef.current = io(getSocketServerUrl(), { path: '/socket.io' })
 
     socketRef.current.on('connect', () => {
       socketRef.current.emit('join_vestiging', {

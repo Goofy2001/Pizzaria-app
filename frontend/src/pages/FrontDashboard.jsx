@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
 import { useParams } from 'react-router-dom'
-import { apiUrl } from '../config/api.js'
+import { apiUrl, getSocketServerUrl } from '../config/api.js'
 
 // Front-office dashboard to manage branch orders and assign drivers.
 export default function FrontDashboard() {
@@ -54,7 +54,7 @@ export default function FrontDashboard() {
     if (!branchId) { return undefined }
 
     let mounted = true
-    const socket = io()
+    const socket = io(getSocketServerUrl(), { path: '/socket.io' })
     socketRef.current = socket
 
     socket.on('connect', () => {

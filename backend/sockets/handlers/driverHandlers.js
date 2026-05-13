@@ -49,20 +49,20 @@ module.exports = function(io, socket) {
         }
 
         const updateQuery = `
-            UPDATE orders
+            UPDATE orders o
                 SET status = $1, ${timestampColumn} = NOW()
-                WHERE id = $2
-                RETURNING *`
-        await pool.query(updateQuery, [nextStatus, bestelling_id])
-
-        const selectQuery = `
-            SELECT o.*, b.name as branch_name, d.name as driver_name
-            FROM orders o
-                JOIN branch b ON o.branch_id = b.id
-                JOIN drivers d ON o.driver_id = d.id
-            WHERE o.id = $1`
-        const updatedResult = await pool.query(selectQuery, [bestelling_id])
+                FROM branch b, drivers d
+                WHERE o.id = $2
+                  AND b.id = o.branch_id
+                  AND d.id = o.driver_id
+                RETURNING o.*, b.name AS branch_name, d.name AS driver_name`
+        const updatedResult = await pool.query(updateQuery, [nextStatus, bestelling_id])
         const updatedOrder = updatedResult.rows[0]
+
+        if (!updatedOrder) {
+            socket.emit('error', { message: `Bestelling ${bestelling_id} kon niet worden bijgewerkt` })
+            return
+        }
 
         // Log status change to console
         console.log(`[ORDER STATUS CHANGE] Order #${bestelling_id} | Driver: ${driver_id} | ${previousStatus} → ${nextStatus} | Customer: ${updatedOrder.customer_name}`)
