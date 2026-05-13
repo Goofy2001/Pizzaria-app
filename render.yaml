@@ -38,3 +38,6 @@ services:
       - key: VITE_API_URL
         value: https://pizzeria-backend-i7y2.onrender.com/api
         sync: false
+      - key: VITE_SOCKET_URL
+        value: https://pizzeria-backend-i7y2.onrender.com
+        sync: false
