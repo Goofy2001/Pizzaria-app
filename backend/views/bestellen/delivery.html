@@ -47,13 +47,11 @@
     </section>
 
     <div class="form-container">
-      <form action="https://formspree.io/f/your-delivery-form-id" method="POST">
+      <form id="delivery-form" action="/api/orders" method="POST">
         <div class="form-group">
-          <label for="location">Leverlocatie (welke winkel?)</label>
-          <select id="location" name="location" required>
-            <option value="">Kies locatie...</option>
-            <option value="hal5">HAL5</option>
-            <option value="muntstraat">Muntstraat 16</option>
+          <label for="branch_id">Leverlocatie (welke winkel?)</label>
+          <select id="branch_id" name="branch_id" required>
+            <option value="">Laden...</option>
           </select>
         </div>
 
@@ -63,23 +61,44 @@
         </div>
 
         <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required placeholder="jouw@email.be"/>
+        </div>
+
+        <div class="form-group">
           <label for="phone">Telefoon</label>
           <input type="tel" id="phone" name="phone" required placeholder="+32 ... (voor bevestiging)"/>
         </div>
 
         <div class="form-group">
-          <label for="address">Leveradres</label>
-          <input type="text" id="address" name="address" required placeholder="Straat + huisnummer"/>
+          <label for="street">Straat</label>
+          <input type="text" id="street" name="street" required placeholder="Straatnaam"/>
         </div>
 
         <div class="form-group">
-          <label for="postal">Postcode & Gemeente</label>
-          <input type="text" id="postal" name="postal" required placeholder="3000 Leuven"/>
+          <label for="house_number">Huisnummer</label>
+          <input type="text" id="house_number" name="house_number" required placeholder="10"/>
         </div>
 
         <div class="form-group">
-          <label for="order-details">Bestelling (pizza's en aantal)</label>
-          <textarea id="order-details" name="order-details" rows="5" required placeholder="Bijv.: 2× Margherita, 1× Diavola..."></textarea>
+          <label for="postal">Postcode</label>
+          <input type="text" id="postal" name="postal" required placeholder="3000"/>
+        </div>
+
+        <div class="form-group">
+          <label for="municipality">Gemeente</label>
+          <input type="text" id="municipality" name="municipality" required placeholder="Leuven"/>
+        </div>
+
+        <div class="form-group">
+          <label for="requested_hour">Gewenste leveringstijd</label>
+          <input type="time" id="requested_hour" name="requested_hour" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="order-details">Bestelling</label>
+          <textarea id="order-details" name="order_details" rows="5" required placeholder="Bijv.: 2× Margherita, 1× Diavola..."></textarea>
+          <small style="display:block; margin-top:0.5rem; color:#6c757d;">De pizza-inhoud wordt in deze mockup niet opgeslagen in de database.</small>
         </div>
 
         <div class="form-group">
@@ -88,6 +107,7 @@
         </div>
 
         <button type="submit">Bestelling plaatsen</button>
+        <p id="delivery-message" style="margin-top: 1rem; font-weight: 600;"></p>
       </form>
     </div>
   </main>
@@ -95,6 +115,65 @@
   <footer>
     © 2026 Antico Pizza – Leuven
   </footer>
+
+  <script>
+    const branchSelect = document.getElementById('branch_id')
+    const deliveryForm = document.getElementById('delivery-form')
+    const deliveryMessage = document.getElementById('delivery-message')
+
+    async function loadBranches() {
+      try {
+        const response = await fetch('/api/branch')
+        if (!response.ok) {
+          throw new Error('Branches konden niet geladen worden')
+        }
+
+        const branches = await response.json()
+        branchSelect.innerHTML = '<option value="">Kies locatie...</option>'
+
+        branches.forEach((branch) => {
+          const option = document.createElement('option')
+          option.value = branch.id
+          option.textContent = `${branch.name}${branch.address ? ` — ${branch.address}` : ''}`
+          branchSelect.appendChild(option)
+        })
+      } catch (_) {
+        branchSelect.innerHTML = '<option value="hal5">HAL5</option><option value="muntstraat">Muntstraat 16</option>'
+      }
+    }
+
+    deliveryForm.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      deliveryMessage.textContent = 'Versturen...'
+      deliveryMessage.style.color = '#333'
+
+      try {
+        const formData = new FormData(deliveryForm)
+        const payload = Object.fromEntries(formData.entries())
+        payload.type = 'delivery'
+
+        const response = await fetch(deliveryForm.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data?.error || 'Bestelling kon niet worden opgeslagen')
+        }
+
+        deliveryForm.reset()
+        deliveryMessage.textContent = 'Bestelling opgeslagen in de database.'
+        deliveryMessage.style.color = '#1c8a45'
+      } catch (err) {
+        deliveryMessage.textContent = err.message
+        deliveryMessage.style.color = '#b91c1c'
+      }
+    })
+
+    loadBranches()
+  </script>
 
 </body>
 </html>

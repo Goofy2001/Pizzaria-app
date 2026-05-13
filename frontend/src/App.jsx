@@ -4,6 +4,15 @@ import FrontDashboard from './pages/FrontDashboard.jsx'
 import DriverDashboard from './pages/DriverDashboard.jsx'
 import DriverHistoryWindow from './pages/DriverHistoryWindow.jsx'
 import DriverNavigationPage from './pages/DriverNavigationPage.jsx'
+import {
+  DeliveryPage,
+  PickupOrderPage,
+  ReserveTablePage,
+  WebsiteContactPage,
+  WebsiteHomePage,
+  WebsiteLocationsPage,
+  WebsiteMenuPage
+} from './pages/WebsitePages.jsx'
 import { getSession } from './lib/session.js'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
@@ -12,7 +21,7 @@ function HomeRedirect() {
   const session = getSession()
 
   if (!session) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/website" replace />
   }
 
   if (session.role === 'front') {
@@ -27,6 +36,13 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
+      <Route path="/website" element={<WebsiteHomePage />} />
+      <Route path="/website/menu" element={<WebsiteMenuPage />} />
+      <Route path="/website/locations" element={<WebsiteLocationsPage />} />
+      <Route path="/website/contact" element={<WebsiteContactPage />} />
+      <Route path="/website/reserve" element={<ReserveTablePage />} />
+      <Route path="/website/pickup" element={<PickupOrderPage />} />
+      <Route path="/website/delivery" element={<DeliveryPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
         path="/front/:branchId"

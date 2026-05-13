@@ -10,6 +10,65 @@ module.exports = function(io) {
     const router = express.Router()
     const ACTIVE_DELIVERY_STATUSES = ['loaded_for_delivery', 'on_route']
 
+    function normalizeHour(value) {
+        if (!value) { return null }
+
+        if (typeof value === 'string' && value.includes('T')) {
+            const date = new Date(value)
+            if (!Number.isNaN(date.getTime())) {
+                return date.toTimeString().slice(0, 8)
+            }
+        }
+
+        if (typeof value === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
+            return value.length === 5 ? `${value}:00` : value
+        }
+
+        return value
+    }
+
+    function normalizePhone(value) {
+        return typeof value === 'string' ? value.trim() : value
+    }
+
+    function normalizeBranchValue(value) {
+        if (value === undefined || value === null || value === '') { return null }
+        const numeric = Number(value)
+        return Number.isInteger(numeric) && numeric > 0 ? numeric : String(value).trim()
+    }
+
+    async function resolveBranchId(branchValue) {
+        const normalized = normalizeBranchValue(branchValue)
+        if (normalized === null) { return null }
+
+        if (Number.isInteger(normalized)) {
+            const result = await pool.query('SELECT id FROM branch WHERE id = $1', [normalized])
+            return result.rows[0]?.id || null
+        }
+
+        const result = await pool.query(
+            `SELECT id
+             FROM branch
+             WHERE LOWER(name) = LOWER($1)
+                OR LOWER(name) LIKE LOWER($2)
+                OR LOWER(address) LIKE LOWER($2)
+             LIMIT 1`,
+            [normalized, `%${normalized}%`]
+        )
+
+        return result.rows[0]?.id || null
+    }
+
+    async function resolveBranchOrFail(res, branchValue) {
+        const branchId = await resolveBranchId(branchValue)
+        if (!branchId) {
+            res.status(400).json({ error: 'Ongeldige of onbekende vestiging' })
+            return null
+        }
+
+        return branchId
+    }
+
     // Helper to ensure one driver has at most one active delivery at a time.
     async function getActiveDeliveryForDriver(driverId, excludeOrderId = null) {
         const query = `
@@ -29,11 +88,24 @@ module.exports = function(io) {
     // Create a new order.
     router.post('/', async function (req, res) {
         try {
-            const { customer_name, customer_email, customer_telephoneNumber, branch_id, type, delivery_postalCode, delivery_municipality, delivery_streetName, delivery_houseNumber, requested_hour } = req.body // variabelen die vanuit de klant meegegeven moeten worden (dus niet status, driver_id, delivery_started, delivery_delivered)
+            const customer_name = req.body.customer_name || req.body.name
+            const customer_email = req.body.customer_email || req.body.email
+            const customer_telephoneNumber = req.body.customer_telephoneNumber || req.body.customer_telephonenumber || req.body.phone
+            const branchValue = req.body.branch_id || req.body.location
+            const rawType = req.body.type || 'pickup'
+            const type = rawType === 'pick-up' ? 'pickup' : rawType
+            const delivery_postalCode = req.body.delivery_postalCode || req.body.delivery_postalcode || req.body.postalCode || req.body.postal
+            const delivery_municipality = req.body.delivery_municipality || req.body.delivery_municipality || req.body.municipality
+            const delivery_streetName = req.body.delivery_streetName || req.body.delivery_streetname || req.body.streetName || req.body.street
+            const delivery_houseNumber = req.body.delivery_houseNumber || req.body.delivery_housenumber || req.body.houseNumber || req.body.house_number
+            const requested_hour = normalizeHour(req.body.requested_hour || req.body.pickup_time || req.body.delivery_time || req.body.time)
+
             // validatie voor correcte nieuwe bestellingen
             if (!customer_name || !customer_email || !customer_telephoneNumber) { return res.status(400).json({ error: 'naam, email en telefoonnummer van de klant zijn verplicht' }) }
-            if (!branch_id || !requested_hour) { return res.status(400).json({ error: 'vestiging en uur zijn nodig' }) }
-            if (type !== 'pick-up' && type !== 'delivery' && type !== 'inHouse') { return res.status(400).json({ error: 'geen geaccepteerd type --> pick-up, inHouse of delivery' }) }
+            const branch_id = await resolveBranchOrFail(res, branchValue)
+            if (!branch_id) { return }
+            if (!requested_hour) { return res.status(400).json({ error: 'vestiging en uur zijn nodig' }) }
+            if (type !== 'pickup' && type !== 'delivery' && type !== 'inHouse') { return res.status(400).json({ error: 'geen geaccepteerd type --> pickup, inHouse of delivery' }) }
             const branchResult = await pool.query(`SELECT id, name, has_delivery FROM branch WHERE id = $1`, [branch_id])
             if (branchResult.rows.length === 0) { return res.status(404).json({ error: 'vestiging is niet gevonden' }) }
             const branch = branchResult.rows[0]

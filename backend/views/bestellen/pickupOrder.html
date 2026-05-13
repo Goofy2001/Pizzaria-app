@@ -86,13 +86,11 @@
         </section>
 
         <div class="form-container">
-            <form action="https://formspree.io/f/your-pickup-form-id" method="POST">
+            <form id="pickup-form" action="/api/orders" method="POST">
                 <div class="form-group">
-                    <label for="location">Locatie</label>
-                    <select id="location" name="location" required>
-                        <option value="">Kies locatie...</option>
-                        <option value="hal5">HAL5</option>
-                        <option value="muntstraat">Muntstraat 16</option>
+                    <label for="branch_id">Locatie</label>
+                    <select id="branch_id" name="branch_id" required>
+                        <option value="">Laden...</option>
                     </select>
                 </div>
 
@@ -102,19 +100,25 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="jouw@email.be" />
+                </div>
+
+                <div class="form-group">
                     <label for="phone">Telefoon</label>
                     <input type="tel" id="phone" name="phone" required placeholder="+32 ... (voor bevestiging)" />
                 </div>
 
                 <div class="form-group">
-                    <label for="pickup-time">Gewenst ophaaltijdstip</label>
-                    <input type="datetime-local" id="pickup-time" name="pickup-time" required />
+                    <label for="requested_hour">Gewenst ophaaltijdstip</label>
+                    <input type="time" id="requested_hour" name="requested_hour" required />
                 </div>
 
                 <div class="form-group">
-                    <label for="order-details">Bestelling (pizza's en aantal)</label>
-                    <textarea id="order-details" name="order-details" rows="5" required
+                    <label for="order-details">Bestelling</label>
+                    <textarea id="order-details" name="order_details" rows="5" required
                         placeholder="Bijv.: 2× Margherita, 1× Diavola, 1× Marinara..."></textarea>
+                    <small style="display:block; margin-top:0.5rem; color:#6c757d;">De pizza-inhoud wordt in deze mockup niet opgeslagen in de database.</small>
                 </div>
 
                 <div class="form-group">
@@ -123,6 +127,7 @@
                 </div>
 
                 <button type="submit">Bestelling plaatsen</button>
+                <p id="pickup-message" style="margin-top: 1rem; font-weight: 600;"></p>
             </form>
         </div>
     </main>
@@ -130,6 +135,65 @@
     <footer>
         © 2026 Antico Pizza – Leuven
     </footer>
+
+    <script>
+        const branchSelect = document.getElementById('branch_id')
+        const pickupForm = document.getElementById('pickup-form')
+        const pickupMessage = document.getElementById('pickup-message')
+
+        async function loadBranches() {
+            try {
+                const response = await fetch('/api/branch')
+                if (!response.ok) {
+                    throw new Error('Branches konden niet geladen worden')
+                }
+
+                const branches = await response.json()
+                branchSelect.innerHTML = '<option value="">Kies locatie...</option>'
+
+                branches.forEach((branch) => {
+                    const option = document.createElement('option')
+                    option.value = branch.id
+                    option.textContent = `${branch.name}${branch.address ? ` — ${branch.address}` : ''}`
+                    branchSelect.appendChild(option)
+                })
+            } catch (_) {
+                branchSelect.innerHTML = '<option value="hal5">HAL5</option><option value="muntstraat">Muntstraat 16</option>'
+            }
+        }
+
+        pickupForm.addEventListener('submit', async (event) => {
+            event.preventDefault()
+            pickupMessage.textContent = 'Versturen...'
+            pickupMessage.style.color = '#333'
+
+            try {
+                const formData = new FormData(pickupForm)
+                const payload = Object.fromEntries(formData.entries())
+                payload.type = 'pickup'
+
+                const response = await fetch(pickupForm.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+
+                const data = await response.json()
+                if (!response.ok) {
+                    throw new Error(data?.error || 'Bestelling kon niet worden opgeslagen')
+                }
+
+                pickupForm.reset()
+                pickupMessage.textContent = 'Bestelling opgeslagen in de database.'
+                pickupMessage.style.color = '#1c8a45'
+            } catch (err) {
+                pickupMessage.textContent = err.message
+                pickupMessage.style.color = '#b91c1c'
+            }
+        })
+
+        loadBranches()
+    </script>
 
 </body>
 

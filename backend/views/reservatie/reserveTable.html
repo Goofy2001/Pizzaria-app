@@ -89,13 +89,11 @@
         </section>
 
         <div class="form-container">
-            <form action="https://formspree.io/f/your-form-id" method="POST">
+            <form id="reservation-form" action="/api/reservations" method="POST">
                 <div class="form-group">
-                    <label for="location">Locatie</label>
-                    <select id="location" name="location" required>
-                        <option value="">Kies locatie...</option>
-                        <option value="hal5">HAL5</option>
-                        <option value="muntstraat">Muntstraat 16</option>
+                    <label for="branch_id">Locatie</label>
+                    <select id="branch_id" name="branch_id" required>
+                        <option value="">Laden...</option>
                     </select>
                 </div>
 
@@ -135,11 +133,70 @@
                 </div>
 
                 <button type="submit">Reserveer aanvraag versturen</button>
+                <p id="reservation-message" style="margin-top: 1rem; font-weight: 600;"></p>
             </form>
         </div>
     </main>
 
     <footer>© 2026 Antico Pizza – Leuven</footer>
+
+    <script>
+        const branchSelect = document.getElementById('branch_id')
+        const reservationForm = document.getElementById('reservation-form')
+        const reservationMessage = document.getElementById('reservation-message')
+
+        async function loadBranches() {
+            try {
+                const response = await fetch('/api/branch')
+                if (!response.ok) {
+                    throw new Error('Branches konden niet geladen worden')
+                }
+
+                const branches = await response.json()
+                branchSelect.innerHTML = '<option value="">Kies locatie...</option>'
+
+                branches.forEach((branch) => {
+                    const option = document.createElement('option')
+                    option.value = branch.id
+                    option.textContent = `${branch.name}${branch.address ? ` — ${branch.address}` : ''}`
+                    branchSelect.appendChild(option)
+                })
+            } catch (_) {
+                branchSelect.innerHTML = '<option value="hal5">HAL5</option><option value="muntstraat">Muntstraat 16</option>'
+            }
+        }
+
+        reservationForm.addEventListener('submit', async (event) => {
+            event.preventDefault()
+            reservationMessage.textContent = 'Versturen...'
+            reservationMessage.style.color = '#333'
+
+            try {
+                const formData = new FormData(reservationForm)
+                const payload = Object.fromEntries(formData.entries())
+
+                const response = await fetch(reservationForm.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+
+                const data = await response.json()
+                if (!response.ok) {
+                    throw new Error(data?.error || 'Reservatie kon niet worden opgeslagen')
+                }
+
+                reservationForm.reset()
+                reservationMessage.textContent = 'Reservatie opgeslagen in de database.'
+                reservationMessage.style.color = '#1c8a45'
+            } catch (err) {
+                reservationMessage.textContent = err.message
+                reservationMessage.style.color = '#b91c1c'
+            }
+        })
+
+        loadBranches()
+    </script>
 </body>
 
 </html>
