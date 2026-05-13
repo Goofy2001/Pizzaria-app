@@ -23,5 +23,3 @@ services:
     plan: free
     buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && npm run preview
-    routes:
-      - path: /
