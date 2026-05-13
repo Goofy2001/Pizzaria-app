@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: pizzeria-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_MAX
+        value: 300
+      - key: DATABASE_URL
+        sync: false
+
+  - type: web
+    name: pizzeria-frontend
+    env: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run preview
+    routes:
+      - path: /
