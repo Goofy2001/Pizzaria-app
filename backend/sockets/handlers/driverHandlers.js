@@ -1,5 +1,6 @@
 const pool = require('../../configs/database')
 const ACTIVE_DELIVERY_STATUSES = ['loaded_for_delivery', 'on_route']
+const GPS_TRACKING_WRITE_INTERVAL_MS = Number(process.env.GPS_TRACKING_WRITE_INTERVAL_MS || 60000)
 
 // Register real-time delivery events for drivers.
 module.exports = function(io, socket) {
@@ -114,7 +115,7 @@ module.exports = function(io, socket) {
         }
 
         const now = Date.now()
-        if (now - lastLocationPersistAt >= 2000) {
+        if (now - lastLocationPersistAt >= GPS_TRACKING_WRITE_INTERVAL_MS) {
             lastLocationPersistAt = now
             persistDriverLocation({ driver_id, latitude, longitude, timestamp }).catch((err) => {
                 console.error('Fout bij opslaan gps-tracking:', err)
