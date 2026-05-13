@@ -119,7 +119,6 @@ function createTableGPS_TRACKING() {
         CREATE TABLE IF NOT EXISTS gps_tracking (
             id SERIAL PRIMARY KEY,
             driver_id INTEGER NOT NULL,
-            order_id INTEGER,
             latitude DOUBLE PRECISION NOT NULL,
             longitude DOUBLE PRECISION NOT NULL,
             timestamp TIMESTAMP DEFAULT NOW(),
@@ -127,10 +126,6 @@ function createTableGPS_TRACKING() {
             CONSTRAINT fk_driver
                 FOREIGN KEY (driver_id)
                 REFERENCES drivers(id)
-                ON DELETE CASCADE,
-            CONSTRAINT fk_order
-                FOREIGN KEY (order_id)
-                REFERENCES orders(id)
                 ON DELETE CASCADE
         )
     `;
@@ -193,6 +188,7 @@ async function init_db() {
         
         await createTableGPS_TRACKING();
         console.log('✅ Table created: gps_tracking');
+    
         
         await createTableDELIVERY_HISTORY();
         console.log('✅ Table created: delivery_history');

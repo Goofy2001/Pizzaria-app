@@ -5,7 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-routing-machine'
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css'
-import { getSocketServerUrl } from '../config/api.js'
+import { apiUrl, getSocketServerUrl } from '../config/api.js'
 
 // Full-screen map page used during an active delivery.
 function DriverNavigationPage() {
@@ -17,6 +17,7 @@ function DriverNavigationPage() {
   const userMarkerRef = useRef(null)
   const destinationMarkerRef = useRef(null)
   const routingRef = useRef(null)
+  const trailRef = useRef(null)
   const socketRef = useRef(null)
   const watchIdRef = useRef(null)
   const currentPositionRef = useRef(null)
@@ -50,6 +51,42 @@ function DriverNavigationPage() {
   function setGpsState(tone, text) {
     setGpsTone(tone)
     setGpsStatus(text)
+  }
+
+  function setTrailFromPoints(points) {
+    if (!mapRef.current) { return }
+
+    if (trailRef.current) {
+      trailRef.current.remove()
+      trailRef.current = null
+    }
+
+    if (!Array.isArray(points) || points.length < 2) {
+      return
+    }
+
+    trailRef.current = L.polyline(points, {
+      color: '#0ea5e9',
+      weight: 4,
+      opacity: 0.7,
+      dashArray: '3 6'
+    }).addTo(mapRef.current)
+  }
+
+  async function loadRecentTrackedLocations() {
+    try {
+      const response = await fetch(apiUrl(`/drivers/${driverId}/locations?limit=80`))
+      if (!response.ok) { return }
+      const rows = await response.json()
+      const ordered = [...rows].reverse()
+      const points = ordered
+        .filter((row) => row.latitude !== null && row.longitude !== null)
+        .map((row) => [Number(row.latitude), Number(row.longitude)])
+
+      setTrailFromPoints(points)
+    } catch (_) {
+      // Ignore tracking load errors; live navigation continues.
+    }
   }
 
   // Rebuild navigation route whenever current position + destination are known.
@@ -248,6 +285,12 @@ function DriverNavigationPage() {
             timestamp: Date.now()
           })
 
+          if (trailRef.current) {
+            const currentPoints = trailRef.current.getLatLngs().map((latLng) => [latLng.lat, latLng.lng])
+            const nextPoints = [...currentPoints, [position.coords.latitude, position.coords.longitude]].slice(-120)
+            setTrailFromPoints(nextPoints)
+          }
+
           // Attempt to sync route once when destination is available
           if (destinationRef.current && !routeSyncedRef.current) {
             syncRoute()
@@ -270,6 +313,7 @@ function DriverNavigationPage() {
     }
 
     loadDestinationFromQuery()
+    loadRecentTrackedLocations()
 
     return () => {
       isMountedRef.current = false
@@ -285,6 +329,8 @@ function DriverNavigationPage() {
           // ignore
         }
       }
+      trailRef.current?.remove()
+      trailRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
     }

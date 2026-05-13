@@ -3,6 +3,8 @@ const ACTIVE_DELIVERY_STATUSES = ['loaded_for_delivery', 'on_route']
 
 // Register real-time delivery events for drivers.
 module.exports = function(io, socket) {
+    let lastLocationPersistAt = 0
+
     // Helper: check if driver already has an active delivery.
     async function getActiveDeliveryForDriver(driverId, excludeOrderId = null) {
         const query = `
@@ -15,6 +17,25 @@ module.exports = function(io, socket) {
             LIMIT 1`
         const result = await pool.query(query, [driverId, ACTIVE_DELIVERY_STATUSES, excludeOrderId])
         return result.rows[0] || null
+    }
+
+    async function persistDriverLocation(data) {
+        const { driver_id, latitude, longitude, timestamp } = data
+
+        await pool.query(
+            `INSERT INTO gps_tracking (driver_id, latitude, longitude, timestamp)
+             VALUES ($1, $2, $3, COALESCE(to_timestamp($4 / 1000.0), NOW()))`,
+            [driver_id, latitude, longitude, timestamp || null]
+        )
+
+        await pool.query(
+            `UPDATE drivers
+                SET latitude = $1,
+                    longitude = $2,
+                    last_location_update = COALESCE(to_timestamp($3 / 1000.0), NOW())
+              WHERE id = $4`,
+            [latitude, longitude, timestamp || null, driver_id]
+        )
     }
 
     // Shared status update flow used by start/end/completed events.
@@ -90,6 +111,14 @@ module.exports = function(io, socket) {
         if (!driver_id || latitude === undefined || longitude === undefined) {
             socket.emit('error', { message: 'driver_id, latitude en longitude zijn verplicht' })
             return
+        }
+
+        const now = Date.now()
+        if (now - lastLocationPersistAt >= 2000) {
+            lastLocationPersistAt = now
+            persistDriverLocation({ driver_id, latitude, longitude, timestamp }).catch((err) => {
+                console.error('Fout bij opslaan gps-tracking:', err)
+            })
         }
 
         io.emit('driver:location_updated', {

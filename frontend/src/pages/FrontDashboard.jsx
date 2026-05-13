@@ -355,25 +355,44 @@ export default function FrontDashboard() {
 
   async function loadBranchDrivers() {
     try {
-      const response = await fetch(apiUrl(`/drivers/selection/branch/${branchId}`))
-      if (!response.ok) {
-        throw new Error(await parseApiError(response))
+      const [driversResponse, locationsResponse] = await Promise.all([
+        fetch(apiUrl(`/drivers/selection/branch/${branchId}`)),
+        fetch(apiUrl(`/drivers/locations/branch/${branchId}`))
+      ])
+
+      if (!driversResponse.ok) {
+        throw new Error(await parseApiError(driversResponse))
+      }
+      if (!locationsResponse.ok) {
+        throw new Error(await parseApiError(locationsResponse))
       }
 
-      const drivers = await response.json()
+      const drivers = await driversResponse.json()
+      const latestLocations = await locationsResponse.json()
+      const locationByDriverId = new Map(latestLocations.map((row) => [Number(row.driver_id), row]))
+
       setBranchDrivers((currentDrivers) => {
         const currentById = new Map(currentDrivers.map((driver) => [Number(driver.id), driver]))
         return drivers.map((driver) => {
           const existingDriver = currentById.get(Number(driver.id))
+          const latest = locationByDriverId.get(Number(driver.id))
+
+          const nextDriver = {
+            ...driver,
+            latitude: latest?.latitude ?? driver.latitude,
+            longitude: latest?.longitude ?? driver.longitude,
+            last_location_update: latest?.timestamp ?? driver.last_location_update
+          }
+
           if (!existingDriver) {
-            return driver
+            return nextDriver
           }
 
           return {
-            ...driver,
-            latitude: existingDriver.latitude ?? driver.latitude,
-            longitude: existingDriver.longitude ?? driver.longitude,
-            last_location_update: existingDriver.last_location_update ?? driver.last_location_update
+            ...nextDriver,
+            latitude: existingDriver.latitude ?? nextDriver.latitude,
+            longitude: existingDriver.longitude ?? nextDriver.longitude,
+            last_location_update: existingDriver.last_location_update ?? nextDriver.last_location_update
           }
         })
       })

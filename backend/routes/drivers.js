@@ -88,6 +88,62 @@ router.get('/selection/branch/:branch_id', async function(req, res) {
     }
 })
 
+// get /locations/branch/:branch_id --> latest known GPS point per driver in branch
+router.get('/locations/branch/:branch_id', async function(req, res) {
+    try {
+        const branch_id = Number(req.params.branch_id)
+        if (!Number.isInteger(branch_id) || branch_id <= 0) {
+            return res.status(400).json({ error: 'Geef een geldig branch_id' })
+        }
+
+        const result = await pool.query(
+            `SELECT DISTINCT ON (g.driver_id)
+                g.driver_id,
+                g.latitude,
+                g.longitude,
+                g.timestamp
+             FROM gps_tracking g
+             JOIN drivers d ON d.id = g.driver_id
+             WHERE d.branch_id = $1
+             ORDER BY g.driver_id, g.timestamp DESC`,
+            [branch_id]
+        )
+
+        return res.status(200).json(result.rows)
+    } catch (err) {
+        console.error('Error asking database:', err)
+        return res.status(500).json({ error: 'Database error' })
+    }
+})
+
+// get /:id/locations --> recent GPS points for one driver
+router.get('/:id/locations', async function(req, res) {
+    try {
+        const id = Number(req.params.id)
+        const limit = Number(req.query.limit || 200)
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ error: 'Geef een geldig driver id' })
+        }
+
+        const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 1000) : 200
+
+        const result = await pool.query(
+            `SELECT driver_id, latitude, longitude, timestamp
+             FROM gps_tracking
+             WHERE driver_id = $1
+             ORDER BY timestamp DESC
+             LIMIT $2`,
+            [id, safeLimit]
+        )
+
+        return res.status(200).json(result.rows)
+    } catch (err) {
+        console.error('Error asking database:', err)
+        return res.status(500).json({ error: 'Database error' })
+    }
+})
+
 //get --> 1 driver
 // Read one driver by id.
 router.get('/:id', async function(req, res) {
