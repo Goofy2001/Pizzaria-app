@@ -10,6 +10,14 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: USE_SUPABASE
+        value: true
+      - key: FRONT_LOGIN_PASSWORD
+        sync: false
+      - key: DRIVER_LOGIN_PASSWORD
+        sync: false
+      - key: APP_LOGIN_PASSWORD
+        sync: false
       - key: CORS_ORIGIN
         value: https://pizzeria-frontend-mwio.onrender.com
         sync: false
