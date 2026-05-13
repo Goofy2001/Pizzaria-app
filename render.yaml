@@ -18,12 +18,14 @@ services:
       - key: DATABASE_URL
         sync: false
 
-  - type: web
+  - type: static_site
     name: pizzeria-frontend
-    env: node
-    plan: free
     buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm start
+    staticPublishPath: frontend/dist
+    routes:
+      - path: /
+      - path: /*
+        destination: /index.html
     envVars:
       - key: VITE_API_URL
         value: https://pizzeria-backend-i7y2.onrender.com/api
