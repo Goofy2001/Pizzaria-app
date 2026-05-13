@@ -107,7 +107,7 @@ module.exports = function(io, socket) {
     // driver logt in op app met naam --> status online
     
     // driver locatie updates 
-    socket.on('driver:update_location', function(data) {
+    socket.on('driver:update_location', async function(data) {
         const { driver_id, latitude, longitude, accuracy, timestamp } = data || {}
         if (!driver_id || latitude === undefined || longitude === undefined) {
             socket.emit('error', { message: 'driver_id, latitude en longitude zijn verplicht' })
@@ -117,18 +117,21 @@ module.exports = function(io, socket) {
         const now = Date.now()
         if (now - lastLocationPersistAt >= GPS_TRACKING_WRITE_INTERVAL_MS) {
             lastLocationPersistAt = now
-            persistDriverLocation({ driver_id, latitude, longitude, timestamp }).catch((err) => {
+            try {
+                await persistDriverLocation({ driver_id, latitude, longitude, timestamp })
+            } catch (err) {
                 console.error('Fout bij opslaan gps-tracking:', err)
+                return
+            }
+
+            io.emit('driver:location_updated', {
+                driver_id,
+                latitude,
+                longitude,
+                accuracy: accuracy || null,
+                timestamp: timestamp || Date.now()
             })
         }
-
-        io.emit('driver:location_updated', {
-            driver_id,
-            latitude,
-            longitude,
-            accuracy: accuracy || null,
-            timestamp: timestamp || Date.now()
-        })
     })
 
     // driver start met delivery

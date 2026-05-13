@@ -75,7 +75,7 @@ function DriverNavigationPage() {
 
   async function loadRecentTrackedLocations() {
     try {
-      const response = await fetch(apiUrl(`/drivers/${driverId}/locations?limit=80`))
+      const response = await fetch(apiUrl(`/drivers/${driverId}/locations?limit=10`))
       if (!response.ok) { return }
       const rows = await response.json()
       const ordered = [...rows].reverse()
