@@ -11,6 +11,7 @@ services:
       - key: PORT
         value: 10000
       - key: CORS_ORIGIN
+        value: https://pizzeria-frontend-mwio.onrender.com
         sync: false
       - key: RATE_LIMIT_MAX
         value: 300
@@ -25,5 +26,5 @@ services:
     startCommand: cd frontend && npm start
     envVars:
       - key: VITE_API_URL
-        value: https://pizzeria-backend.onrender.com/api
+        value: https://pizzeria-backend-i7y2.onrender.com/api
         sync: false
