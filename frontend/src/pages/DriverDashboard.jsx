@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
+import { apiUrl } from '../config/api.js'
 
 // Driver dashboard: shows active orders and delivery actions.
 export default function DriverDashboard() {
@@ -59,7 +60,7 @@ export default function DriverDashboard() {
   // Fetch driver profile info.
   async function loadDriver() {
     try {
-      const response = await fetch(`/api/drivers/${driverId}`)
+      const response = await fetch(apiUrl(`/drivers/${driverId}`))
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
@@ -73,7 +74,7 @@ export default function DriverDashboard() {
   // Fetch all orders linked to this driver.
   async function loadOrders() {
     try {
-      const response = await fetch(`/api/orders/drivers/${driverId}`)
+      const response = await fetch(apiUrl(`/orders/drivers/${driverId}`))
       if (response.status === 404) {
         setOrders([])
         return
@@ -154,7 +155,7 @@ export default function DriverDashboard() {
         params.set('customer_name', 'Terug naar branch')
 
         if (driver?.branch_id) {
-          const branchResponse = await fetch(`/api/branch/${driver.branch_id}`)
+          const branchResponse = await fetch(apiUrl(`/branch/${driver.branch_id}`))
           if (branchResponse.ok) {
             const branch = await branchResponse.json()
             params.set('customer_name', `Terug naar ${branch.name || 'branch'}`)

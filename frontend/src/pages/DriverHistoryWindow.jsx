@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
+import { apiUrl } from '../config/api.js'
 
 // Driver page that only shows completed/cancelled history orders.
 export default function DriverHistoryWindow() {
@@ -21,7 +22,7 @@ export default function DriverHistoryWindow() {
   // Fetch all orders for driver, then keep only history statuses.
   async function loadHistory() {
     try {
-      const response = await fetch(`/api/orders/drivers/${driverId}`)
+      const response = await fetch(apiUrl(`/orders/drivers/${driverId}`))
       if (response.status === 404) {
         setOrders([])
         return

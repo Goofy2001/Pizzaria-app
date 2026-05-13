@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
 import { useParams } from 'react-router-dom'
+import { apiUrl } from '../config/api.js'
 
 // Front-office dashboard to manage branch orders and assign drivers.
 export default function FrontDashboard() {
@@ -340,7 +341,7 @@ export default function FrontDashboard() {
 
   async function loadBranch() {
     try {
-      const response = await fetch(`/api/branch/${branchId}`)
+      const response = await fetch(apiUrl(`/branch/${branchId}`))
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
@@ -354,7 +355,7 @@ export default function FrontDashboard() {
 
   async function loadBranchDrivers() {
     try {
-      const response = await fetch(`/api/drivers/selection/branch/${branchId}`)
+      const response = await fetch(apiUrl(`/drivers/selection/branch/${branchId}`))
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
@@ -385,7 +386,7 @@ export default function FrontDashboard() {
 
   async function loadOrders() {
     try {
-      const response = await fetch(`/api/orders/branch/${branchId}`)
+      const response = await fetch(apiUrl(`/orders/branch/${branchId}`))
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
@@ -399,7 +400,7 @@ export default function FrontDashboard() {
 
   async function updateStatus(orderId, newStatus) {
     try {
-      const response = await fetch(`/api/orders/${orderId}/status`, {
+      const response = await fetch(apiUrl(`/orders/${orderId}/status`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -423,7 +424,7 @@ export default function FrontDashboard() {
     setLoadingDrivers(true)
 
     try {
-      const response = await fetch(`/api/drivers/selection/branch/${branchId}`)
+      const response = await fetch(apiUrl(`/drivers/selection/branch/${branchId}`))
       if (!response.ok) {
         throw new Error(await parseApiError(response))
       }
@@ -454,7 +455,7 @@ export default function FrontDashboard() {
     }
 
     try {
-      const response = await fetch(`/api/orders/${assigningOrderId}/assign-driver`, {
+      const response = await fetch(apiUrl(`/orders/${assigningOrderId}/assign-driver`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ driver_id: Number(selectedDriverId) })
