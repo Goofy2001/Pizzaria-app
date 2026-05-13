@@ -2,8 +2,11 @@ const { Pool } = require('pg')
 require('dotenv').config()
 
 // database configuration
-// Toggle between local and Supabase connections
-const USE_SUPABASE = process.env.USE_SUPABASE === 'true' || (process.env.DATABASE_URL && !process.env.USE_SUPABASE)
+// Toggle between local and Supabase connections.
+// Prefer an explicit DATABASE_URL when present.
+const hasDatabaseUrl = Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL.trim())
+const useSupabaseFlag = String(process.env.USE_SUPABASE || '').toLowerCase() === 'true'
+const USE_SUPABASE = useSupabaseFlag || hasDatabaseUrl
 
 // Create pool configuration based on toggle
 const poolConfig = USE_SUPABASE ? {
@@ -18,6 +21,8 @@ const poolConfig = USE_SUPABASE ? {
 }
 
 console.log(`📡 Connecting to: ${USE_SUPABASE ? 'Supabase (DATABASE_URL)' : 'Local/PG_* vars'}`)
+console.log(`   USE_SUPABASE=${process.env.USE_SUPABASE || '(missing)'}`)
+console.log(`   DATABASE_URL=${hasDatabaseUrl ? 'present' : '(missing)'}`)
 if (USE_SUPABASE) {
     console.log(`   DATABASE_URL: ${process.env.DATABASE_URL?.substring(0, 60)}...`)
 }
