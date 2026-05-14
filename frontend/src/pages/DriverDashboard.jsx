@@ -1,3 +1,14 @@
+/**
+ * DRIVER DASHBOARD PAGE
+ * Auteur: GitHub Copilot
+ * Doel: Driver interface voor delivery management
+ * Beschrijving:
+ * - Toon actieve bestellingen voor driver
+ * - Update order status (picked up, on route, delivered)
+ * - Socket.IO real-time updates van orders
+ * - Location/GPS tracking integration
+ */
+
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
@@ -70,6 +81,17 @@ export default function DriverDashboard() {
       setMessage(err.message)
     }
   }
+
+  // Join branch room once driver data is loaded
+  useEffect(() => {
+    if (driver && driver.branch_id && socketRef.current?.connected) {
+      socketRef.current.emit('join_vestiging', {
+        vestiging_id: Number(driver.branch_id),
+        user_type: 'driver',
+        driver_id: Number(driverId)
+      })
+    }
+  }, [driver, driverId])
 
   // Fetch all orders linked to this driver.
   async function loadOrders() {

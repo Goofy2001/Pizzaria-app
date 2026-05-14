@@ -1,8 +1,15 @@
+/**
+ * SOCKET.IO INITIALIZATION
+ * Doel: Setup Socket.IO server voor real-time communicatie
+ */
+
+//socket.io server importeren
 const { Server } = require('socket.io')
-const testHandlers = require('./handlers/testHandlers')
+//handlers importeren
+const testHandlers = require('./handlers/testHandlers') 
 const driverHandlers = require('./handlers/driverHandlers')
 
-// Create Socket.IO server and wire all real-time event handlers.
+// maak socket server en zet de functies online
 function initializeSocket(server) {
     const io = new Server(server, {
         cors: {
@@ -10,16 +17,21 @@ function initializeSocket(server) {
             methods: ['GET', 'POST']
         }
     })
+    //connectie maken met nieuwe client
     io.on('connection', function(socket) {
+        //console.log voor debugging
         console.log('Nieuwe client verbonden: ', socket.id)
-
-        // Room subscription used to scope branch-related events.
+        //zet client in "room" gebaseerd op branch info van frontend
         socket.on('join_vestiging', function(data) {
+            //error handling: wordt data meegestuurd en is vestiging_id er deel van
+            console.log(data)
             const vestigingId = data && data.vestiging_id
             if (!vestigingId) { return }
+            //maak een room op basis van de vestiging
             const roomName = `vestiging:${vestigingId}`
+            //laat client de room joinen 
             socket.join(roomName)
-            socket.emit('joined_vestiging', { room: roomName })
+            console.log('Client joined room:', roomName)
         })
 
         // Register handlers
@@ -33,4 +45,4 @@ function initializeSocket(server) {
     return io
 }
 
-module.exports = initializeSocket;
+module.exports = initializeSocket; //maak global

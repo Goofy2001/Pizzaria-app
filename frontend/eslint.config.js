@@ -1,3 +1,9 @@
+/**
+ * ESLINT CONFIGURATION
+ * Auteur: GitHub Copilot
+ * Doel: Code linting rules voor React project
+ */
+
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

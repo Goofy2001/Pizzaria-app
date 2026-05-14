@@ -1,3 +1,9 @@
+/**
+ * APP ROUTER COMPONENT
+ * Auteur: GitHub Copilot
+ * Doel: Hoofd routing component met protected routes
+ */
+
 import { Navigate, Route, Routes } from 'react-router-dom'
 import LoginPage from './pages/LoginPage.jsx'
 import FrontDashboard from './pages/FrontDashboard.jsx'

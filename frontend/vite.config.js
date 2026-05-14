@@ -1,3 +1,10 @@
+/**
+ * VITE CONFIGURATION
+ * Auteur: GitHub Copilot
+ * Doel: Frontend build tool configuratie
+ * Features: React plugin, SSL support, local IP exposure
+ */
+
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'

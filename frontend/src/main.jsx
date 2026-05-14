@@ -1,3 +1,9 @@
+/**
+ * APP ENTRY POINT
+ * Auteur: GitHub Copilot
+ * Doel: React app bootstrap en DOM mounting
+ */
+
 // App bootstrap: load React app into the root DOM element.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

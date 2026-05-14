@@ -1,3 +1,14 @@
+/**
+ * FRONT DASHBOARD PAGE
+ * Auteur: GitHub Copilot
+ * Doel: Restaurant manager interface voor order management en driver tracking
+ * Beschrijving:
+ * - Order management (status updates, assignments)
+ * - Real-time driver tracking via GPS
+ * - Socket.IO integration voor live updates
+ * - Leaflet.js kaart met driver locaties
+ */
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 import L from 'leaflet'

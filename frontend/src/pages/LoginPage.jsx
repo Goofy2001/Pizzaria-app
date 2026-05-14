@@ -1,3 +1,10 @@
+/**
+ * LOGIN PAGE
+ * Auteur: GitHub Copilot
+ * Doel: Authenticatie interface voor drivers en restaurant managers
+ * Beschrijving: Accepteert 'front' (manager) of 'driver' rolle met identifier/password
+ */
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { saveSession } from '../lib/session.js'

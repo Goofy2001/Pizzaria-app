@@ -1,3 +1,9 @@
+/**
+ * DASHBOARD LAYOUT COMPONENT
+ * Auteur: GitHub Copilot
+ * Doel: Gedeelde pagina shell voor dashboards
+ */
+
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clearSession, getSession } from '../lib/session.js'

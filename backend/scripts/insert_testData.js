@@ -1,11 +1,16 @@
-const pool = require('../configs/database');
+/**
+ * TEST DATA INSERTION SCRIPT
+ * Doel: Populate database met testdata voor development
+ */
+
+const pool = require('../configs/database'); //database connectie maken
 
 // =====================================================
 // Reset all tables
 // =====================================================
 async function resetDataTables() {
     await pool.query(`
-        TRUNCATE TABLE branch, drivers, reservations, orders, gps_tracking, delivery_history
+        TRUNCATE TABLE branch, drivers, reservations, orders, gps_tracking
         RESTART IDENTITY CASCADE
     `);
     console.log("✅ All tables reset");
@@ -31,10 +36,10 @@ function insertTestDataDrivers() {
     return pool.query(`
         INSERT INTO drivers (name, branch_id, status, on_route, latitude, longitude, last_location_update)
         VALUES
-            ('Jan Peeters',    1, 'ONLINE',  FALSE, 50.8460, 4.3520, NOW() - INTERVAL '10 minutes'),
-            ('Marie Dubois',   1, 'ONLINE',  TRUE,  50.8510, 4.3460, NOW() - INTERVAL '2 minutes'),
-            ('Wim Claes',      2, 'ONLINE',  FALSE, 51.2035, 4.4160, NOW() - INTERVAL '7 minutes'),
-            ('Anja Van Den Berg', 2, 'ONLINE', TRUE, 51.2070, 4.4200, NOW() - INTERVAL '1 minute')
+            ('Jan Peeters',    1, 'OFFLINE',  FALSE, 50.8460, 4.3520, NOW() - INTERVAL '10 minutes'),
+            ('Marie Dubois',   1, 'OFFLINE',  TRUE,  50.8510, 4.3460, NOW() - INTERVAL '2 minutes'),
+            ('Wim Claes',      2, 'OFFLINE',  FALSE, 51.2035, 4.4160, NOW() - INTERVAL '7 minutes'),
+            ('Anja Van Den Berg', 2, 'OFFLINE', TRUE, 51.2070, 4.4200, NOW() - INTERVAL '1 minute')
     `);
 }
 
@@ -154,7 +159,7 @@ function insertTestDataOrders() {
 // =====================================================
 // Minimal GPS tracking (active on_route drivers)
 // =====================================================
-function insertTestDataGpsTracking() {
+/* function insertTestDataGpsTracking() {
     return pool.query(`
         INSERT INTO gps_tracking (driver_id, latitude, longitude, timestamp)
         VALUES
@@ -165,20 +170,9 @@ function insertTestDataGpsTracking() {
             (4, 51.2065, 4.4225, '2025-03-02 15:10:00'),
             (4, 51.2080, 4.4240, '2025-03-02 15:13:00')
     `);
-}
+} */
 
-// =====================================================
-// Minimal delivery history (completed deliveries)
-// =====================================================
-function insertTestDataDeliveryHistory() {
-    return pool.query(`
-        INSERT INTO delivery_history
-            (branch_id, order_id, start_lat, start_lon, end_lat, end_lon, distance_km, time_minutes, started_on, delivered_on)
-        VALUES
-            (1, 9,  50.8465, 4.3517, 51.2100, 4.4250, 3.1, 18, '2025-03-01 10:40:00', '2025-03-01 10:58:00'),
-            (2, 19, 51.2030, 4.4170, 51.2080, 4.4240, 1.4,  9, '2025-03-02 10:35:00', '2025-03-02 10:52:00')
-    `);
-}
+
 
 // =====================================================
 // Main: reset + seed
@@ -186,15 +180,14 @@ function insertTestDataDeliveryHistory() {
 // Run all seed steps in a fixed order.
 async function fixTestDataTables() {
     try {
+        //reset alle tables
         await resetDataTables();
-
+        //insert test data in elke tabel
         await insertTestDataBranch();       console.log("✅ Branch data seeded");
         await insertTestDataDrivers();      console.log("✅ Drivers data seeded");
         await insertTestDataReservations(); console.log("✅ Reservations data seeded");
         await insertTestDataOrders();       console.log("✅ Orders data seeded");
-        await insertTestDataGpsTracking();  console.log("✅ GPS tracking data seeded");
-        await insertTestDataDeliveryHistory(); console.log("✅ Delivery history data seeded");
-
+        /* await insertTestDataGpsTracking();  console.log("✅ GPS tracking data seeded"); */
         console.log("🎉 All tables successfully reset and seeded!");
         await pool.end();
     } catch (err) {

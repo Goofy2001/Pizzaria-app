@@ -1,3 +1,9 @@
+/**
+ * PROTECTED ROUTE COMPONENT
+ * Auteur: GitHub Copilot
+ * Doel: Route guard voor authenticated routes
+ */
+
 import { Navigate } from 'react-router-dom'
 import { getSession } from '../lib/session.js'
 

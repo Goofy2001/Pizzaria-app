@@ -1,4 +1,9 @@
-const pool = require('../configs/database');
+/**
+ * DATABASE INITIALIZATION SCRIPT
+ * Doel: Create alle database tables met schema
+ */
+
+const pool = require('../configs/database') //database connectie
 
 // Tabel: Vestigingen
 // Create branch table.
@@ -132,41 +137,6 @@ function createTableGPS_TRACKING() {
     return pool.query(query);
 }
 
-// Tabel: Leveringen History (voor analytics/heat maps)
-// Create delivery_history table.
-function createTableDELIVERY_HISTORY() {
-    const query = `
-        CREATE TABLE IF NOT EXISTS delivery_history (
-            id SERIAL PRIMARY KEY,
-            branch_id INTEGER NOT NULL,
-            order_id INTEGER,
-            
-            -- Route info
-            start_lat DOUBLE PRECISION,
-            start_lon DOUBLE PRECISION,
-            end_lat DOUBLE PRECISION NOT NULL,
-            end_lon DOUBLE PRECISION NOT NULL,
-            
-            -- Metrics
-            distance_km DECIMAL(5,2),
-            time_minutes INTEGER,
-            
-            -- Timestamps
-            started_on TIMESTAMP,
-            delivered_on TIMESTAMP DEFAULT NOW(),
-            
-            CONSTRAINT fk_vestiging
-                FOREIGN KEY (branch_id)
-                REFERENCES branch(id)
-                ON DELETE CASCADE,
-            CONSTRAINT fk_order
-                FOREIGN KEY (order_id)
-                REFERENCES orders(id)
-                ON DELETE SET NULL
-        )
-    `;
-    return pool.query(query);
-}
 
 // Initialize alle tabellen in juiste volgorde
 // Main initialization flow with logging.
@@ -188,10 +158,6 @@ async function init_db() {
         
         await createTableGPS_TRACKING();
         console.log('✅ Table created: gps_tracking');
-    
-        
-        await createTableDELIVERY_HISTORY();
-        console.log('✅ Table created: delivery_history');
         
         console.log('\n🎉 All tables created successfully!');
     } catch(err) {

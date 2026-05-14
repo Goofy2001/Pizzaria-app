@@ -1,3 +1,9 @@
+/**
+ * SESSION MANAGEMENT
+ * Auteur: GitHub Copilot
+ * Doel: Beheer user session via localStorage
+ */
+
 const SESSION_KEY = 'pizzeria_session'
 
 // Read the saved login session from localStorage.

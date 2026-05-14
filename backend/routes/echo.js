@@ -1,17 +1,22 @@
-//import de belangrijke packages
-const express = require('express')
-const echo = express.Router()
+/**
+ * ECHO ROUTE (Debug)
+ * Doel: Test endpoint voor request body debugging
+ * Endpoint: POST /api/echo
+ */
 
-// opstellen van de JSON
-// Debug endpoint: returns posted value to verify request body flow.
+const express = require('express') //inladen van express
+const echo = express.Router() //endpoint available maken
+
+// POST /api/echo - Retourneer ingezonden waarde terug
+// Nuttig voor debugging request body flow
 echo.post('/', function(req, res) {
+    // Creëer response object met echo van ingezonden test waarde
     const newPost = {
-        test: req.body.test,
-        echo: req.body.test
+        test: req.body.test, // Original value
+        echo: req.body.test  // Echo value
     }
+    // Return 201 Created + echo response
     res.status(201).json(newPost)
 })
 
-
-// exporteren van de routes
-module.exports = echo
+module.exports = echo //echo global maken

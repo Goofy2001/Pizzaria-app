@@ -1,7 +1,6 @@
-// inladen van de packages
-const express = require('express')
-const router = express.Router()
-const pool = require('../configs/database')
+const express = require('express') //inladen van express
+const router = express.Router() //router maken voor endpoints
+const pool = require('../configs/database') //database connectie
 
 //basis crud
 
@@ -10,11 +9,15 @@ const pool = require('../configs/database')
 // Create a new driver for a delivery-enabled branch.
 router.post('/', async function(req, res) {
     try {
+        //opslaan van de request parameters in variabelen
         const {name, branch_id} = req.body
-        // validatie
+        //error handling: parameters zijn niet meegestuurd
         if (!name || !branch_id) {return res.status(400).json({error: 'Geef een naam en branch_id'})}
+        //sla resultaar van query op
         const branchResult = await pool.query(`SELECT * FROM branch WHERE id = $1`, [branch_id])
+        //error handling: er is geen vestiging gevonden
         if (branchResult.rows.length === 0) {return res.status(404).json({error: `branch ${branch_id} bestaat niet`})}
+        //error handling: de vestiging heeft geen leveringen
         if (branchResult.rows[0].has_delivery !== true) {return res.status(400).json({error: 'Je probeert een driver toe te voegen bij een branch zonder levering'})}
         // query opstellen voor de nieuwe driver
         const query = `
@@ -41,7 +44,9 @@ router.get('/', async function(req, res) {
                 FROM drivers d
                 LEFT JOIN branch b ON d.branch_id = b.id`
         const result = await pool.query(query)
-        if (result.rows.length === 0) {return res.status(404).json({error: 'no drivers found'})} // check of er drivers zijn
+        //error handling: check of er drivers zijn
+        if (result.rows.length === 0) {return res.status(404).json({error: 'no drivers found'})}
+        //stuur response terug
         res.status(200).json(result.rows)
     } catch(err) {
         console.error('Error asking database:', err)
@@ -49,17 +54,19 @@ router.get('/', async function(req, res) {
     }
 })
 
-// get /selection/branch/:branch_id --> online drivers met busy status voor assign flow
+// get /selection/branch/:branch_id --> online drivers met busy status (voor onbeschikbare status in front dashboard)
 // Read assignable drivers for one branch, including busy flag.
 router.get('/selection/branch/:branch_id', async function(req, res) {
     try {
+        //sla request parameter op in variabele
         const branch_id = req.params.branch_id
-
+        //query voor vestiging te zoeken
         const branchResult = await pool.query('SELECT id FROM branch WHERE id = $1', [branch_id])
+        //error handling: er is geen vestiging
         if (branchResult.rows.length === 0) {
             return res.status(404).json({ error: 'Geen branch gevonden in database' })
         }
-
+        //query voor het alle drivers te selecteren (dat busy status hebben) voor een bepaalde branch
         const query = `
             SELECT
                 d.id,
@@ -79,8 +86,9 @@ router.get('/selection/branch/:branch_id', async function(req, res) {
             WHERE d.branch_id = $1
               AND d.status = 'ONLINE'
             ORDER BY d.name ASC`
-
+        //doe query
         const result = await pool.query(query, [branch_id])
+        //stuur resultaat terug
         res.status(200).json(result.rows)
     } catch (err) {
         console.error('Error asking database:', err)
@@ -88,14 +96,16 @@ router.get('/selection/branch/:branch_id', async function(req, res) {
     }
 })
 
-// get /locations/branch/:branch_id --> latest known GPS point per driver in branch
+// get /locations/branch/:branch_id: get method voor verkrijgen van laatste locatie van alle drivers voor een branch
 router.get('/locations/branch/:branch_id', async function(req, res) {
     try {
+        //sla request parameters om naar variabelen
         const branch_id = Number(req.params.branch_id)
+        //error handling: is het branch id geldig
         if (!Number.isInteger(branch_id) || branch_id <= 0) {
             return res.status(400).json({ error: 'Geef een geldig branch_id' })
         }
-
+        //select query: voor bepaalde branch selecteer 1 rij per driver (laatste gps coordinaat op basis van tijd)
         const result = await pool.query(
             `SELECT DISTINCT ON (g.driver_id)
                 g.driver_id,
@@ -108,7 +118,7 @@ router.get('/locations/branch/:branch_id', async function(req, res) {
              ORDER BY g.driver_id, g.timestamp DESC`,
             [branch_id]
         )
-
+        //stuur response
         return res.status(200).json(result.rows)
     } catch (err) {
         console.error('Error asking database:', err)
@@ -116,18 +126,19 @@ router.get('/locations/branch/:branch_id', async function(req, res) {
     }
 })
 
-// get /:id/locations --> recent GPS points for one driver
+// get /:id/locations --> krijg gps coordinaten van een bepaalde driver (bewegingslijn voor drivers)
 router.get('/:id/locations', async function(req, res) {
     try {
+        //sla request variabelen op en variabelen
         const id = Number(req.params.id)
-        const limit = Number(req.query.limit || 200)
-
+        const limit = Number(req.query.limit || 5)
+        //error handling: geldig driver.id
         if (!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({ error: 'Geef een geldig driver id' })
         }
-
-        const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 1000) : 200
-
+        //error handling: het limiet beperken
+        const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 5) : 5
+        //select query met variabelen
         const result = await pool.query(
             `SELECT driver_id, latitude, longitude, timestamp
              FROM gps_tracking
@@ -136,7 +147,7 @@ router.get('/:id/locations', async function(req, res) {
              LIMIT $2`,
             [id, safeLimit]
         )
-
+        //stuur response terug naar server
         return res.status(200).json(result.rows)
     } catch (err) {
         console.error('Error asking database:', err)
@@ -148,14 +159,17 @@ router.get('/:id/locations', async function(req, res) {
 // Read one driver by id.
 router.get('/:id', async function(req, res) {
     try {
+        //steek req in variabelen
         const {id} = req.params
-        // validatie
+        //select sql voor bepaalde driver
         const query = `
             SELECT id, name, status, branch_id
                 FROM drivers
                 WHERE id = $1`
         const result = await pool.query(query, [id])
+        //error handling: geen geldig driver.id
         if (result.rows.length === 0) {return res.status(404).json({error: `Geen drivers gevonden voor dit id: ${id}`})}
+        //stuur response terug
         res.status(200).json(result.rows[0])
     } catch(err) {
         console.error('Error fetching driver:', err)
@@ -163,13 +177,15 @@ router.get('/:id', async function(req, res) {
     }
 })
 
-//get /branch/:branch_id --> krijg alle drivers voor bepaalde branch (momenteel nog geen nut maar is een failsafe als er een fout in db staat)
+//get /branch/:branch_id
 // Read all drivers for a specific branch.
 router.get('/branch/:branch_id', async function(req, res) {
     try {
+        //sla req.parameters op in variabelen
         const branch_id = req.params.branch_id
-        //validatie
+        //select query voor het zoekn naar specifieke branch
         const branchResult = await pool.query(`SELECT * FROM branch WHERE id = $1`, [branch_id])
+        //error handling: vestiging bestaat niet
         if (branchResult.rows.length === 0 ) {return res.status(404).json({error: "Geen branch gevonden in database"})}
         // query opstellen
         const query = `
@@ -178,7 +194,8 @@ router.get('/branch/:branch_id', async function(req, res) {
                 LEFT JOIN branch b ON d.branch_id = b.id
                 WHERE d.branch_id = $1`
         const result = await pool.query(query, [branch_id])
-        if (result.rows.length === 0 ) {return res.status(404).json({error: `Geen drivers gevonden voor branch ${branch_id}`})} // check of er drivers zijn
+        //error handling: er zijn geen drivers voor de branch
+        if (result.rows.length === 0 ) {return res.status(404).json({error: `Geen drivers gevonden voor branch ${branch_id}`})}
         res.status(200).json(result.rows)
     } catch(err) {
         console.error('Error asking database:', err)
@@ -186,12 +203,12 @@ router.get('/branch/:branch_id', async function(req, res) {
     }
 })
 
-//get /on_route/:driver_id --> krijg alle on_route bestellingen voor een specifieke driver
-// Read orders currently linked to one driver.
+//get /on_route/:driver_id --> krijg on_route bestellingen voor een specifieke driver (origineel wou ik zorgen dat de applicatie 2 orders per driver ondersteunde maar dit was te ingewikkeld voor een beginner)
 router.get('/on_route/:driver_id', async function(req, res) {
     try {
+        //sla req params op in variabele
         const driver_id = req.params.driver_id
-        //valideren
+        //error handling: bestaat de driver
         const driverResult = await pool.query(`SELECT * FROM drivers WHERE id = $1`, [driver_id]) // haalt de corresponderende driver op
         if (driverResult.rows.length === 0 ) {return res.status(404).json({error: `driver met id ${driver_id} bestaat niet`})}
         // query opstellen
@@ -201,6 +218,7 @@ router.get('/on_route/:driver_id', async function(req, res) {
                 LEFT JOIN drivers d ON o.driver_id = d.id
                 WHERE o.driver_id = $1`
         const result = await pool.query(query, [driver_id])
+        //error handling/optie: driver heeft geen bestellingen
         if (result.rows.length === 0) {return res.status(404).json({error: `driver ${driver_id} heeft geen actieve bestellingen`})}
         res.status(200).json(result.rows)
     } catch(err) {
@@ -210,27 +228,36 @@ router.get('/on_route/:driver_id', async function(req, res) {
 })
 
 //UPDATE
-//patch :status-toggle --> status van driver aanpassen
+//OLD: patch :status-toggle --> status van driver aanpassen
 // Toggle driver status between ONLINE and OFFLINE.
 router.patch('/status-toggle', async function(req, res) {
     try {
+        //req params opslaan in variabele
         const id = req.body.id
-        // valideren
+        //error handling: geen id meegegeven
         if (!id) {res.status(400).json({error: "Geef een id op"})}
+        //select query voor driver te zoekn
         const driverResult = await pool.query(`SELECT * FROM drivers WHERE id = $1`, [id])
+        //error handling: geen driver in database
         if (driverResult.rows.length === 0) {return res.status(404).json({error: "Geef een geldig id"})}
+        //sla oude status op
         const oldStatus = driverResult.rows[0].status
+        //zet nieuwe status naar het omgekeerde
         let newStatus
         if (oldStatus === "ONLINE") {newStatus = "OFFLINE"}
         else if (oldStatus === "OFFLINE") {newStatus = "ONLINE"}
+        //error handling: oude status is niet valid
         else {return res.status(400).json({error: `De status (${oldStatus}) behoort niet tot de geldige statussen: OFFLINE of ONLINE`})}
+        //update query om nieuwe status te uploaden
         const query = `
             UPDATE drivers
                 SET status = $1
                 WHERE id = $2
                 RETURNING *`
         const result = await pool.query(query, [newStatus, id])
+        //console log voor debugging
         console.log(`[DRIVER STATUS] Driver #${id} status toggled: ${oldStatus} -> ${newStatus}`)
+        //stuur antwoord terug
         return res.status(200).json(result.rows[0])
     } catch(err) {
         console.error('Error asking database:', err)
@@ -238,6 +265,8 @@ router.patch('/status-toggle', async function(req, res) {
     }
 }) 
 
+
+//crud operaties voor de toekomst
 
 //DELETE
 //delete :id

@@ -1,3 +1,9 @@
+/**
+ * API CONFIGURATION
+ * Auteur: GitHub Copilot
+ * Doel: API URL configuratie voor development/production
+ */
+
 // API base URL - uses environment variable or falls back to relative path for development
 // Resolve VITE_API_URL and ensure a trailing "/api" when a full host is provided.
 const raw = import.meta.env.VITE_API_URL || '/api'

@@ -1,3 +1,14 @@
+/**
+ * DRIVER NAVIGATION PAGE
+ * Auteur: GitHub Copilot
+ * Doel: Full-screen kaart voor real-time navigatie tijdens deliveries
+ * Beschrijving:
+ * - Leaflet.js kaart met routing machine
+ * - Socket.IO real-time order updates
+ * - GPS tracking van driver
+ * - Route planning
+ */
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
@@ -227,7 +238,7 @@ function DriverNavigationPage() {
     }
 
     setIsCompleting(true)
-    socketRef.current.emit('driver:delivery_completed', {
+    socketRef.current.emit('driver:end_delivery', {
       bestelling_id: Number(orderId),
       driver_id: Number(driverId)
     })

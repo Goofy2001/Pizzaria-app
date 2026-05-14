@@ -1,3 +1,5 @@
+//test-project om te leren werken met socket.io
+
 // Counter variable (alleen voor test)
 let counter = 0;
 

@@ -1,3 +1,9 @@
+/**
+ * THEME MANAGEMENT
+ * Auteur: GitHub Copilot
+ * Doel: Light/dark mode theme handling
+ */
+
 const THEME_KEY = 'pizzeria_theme'
 
 export function getSavedTheme() {
