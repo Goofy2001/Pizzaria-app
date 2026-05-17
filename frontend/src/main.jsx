@@ -1,6 +1,5 @@
 /**
  * APP ENTRY POINT
- * Auteur: GitHub Copilot
  * Doel: React app bootstrap en DOM mounting
  */
 
@@ -22,7 +21,7 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Initialize theme early so CSS class is present before React paints
+//inladen van het thema
 try {
   initTheme()
 } catch (_) {

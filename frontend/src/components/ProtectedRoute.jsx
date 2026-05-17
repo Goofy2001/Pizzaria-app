@@ -1,6 +1,5 @@
 /**
  * PROTECTED ROUTE COMPONENT
- * Auteur: GitHub Copilot
  * Doel: Route guard voor authenticated routes
  */
 
@@ -9,15 +8,14 @@ import { getSession } from '../lib/session.js'
 
 // Route guard: only allow users with a valid session (and optional role).
 export default function ProtectedRoute({ role, children }) {
-  const session = getSession()
-
-  if (!session) {
+  const session = getSession() //zoek session gegevens
+  if (!session) { //geen gegevens
     return <Navigate to="/login" replace />
   }
 
-  if (role && session.role !== role) {
+  if (role && session.role !== role) { //is rol aanwezig en niet gelijk aan de session rol
     return <Navigate to="/login" replace />
   }
 
-  return children
+  return children // rol aanwezig en gelijk aan session rol
 }

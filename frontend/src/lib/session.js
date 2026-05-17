@@ -1,29 +1,28 @@
 /**
  * SESSION MANAGEMENT
- * Auteur: GitHub Copilot
  * Doel: Beheer user session via localStorage
  */
 
-const SESSION_KEY = 'pizzeria_session'
+const SESSION_KEY = 'pizzeria_session' //key item voor localstorage
 
-// Read the saved login session from localStorage.
+//opvragen van localstorage informatie voor sessie gegevens
 export function getSession() {
-  const raw = localStorage.getItem(SESSION_KEY)
-  if (!raw) { return null }
+  const raw = localStorage.getItem(SESSION_KEY) //zoek naar key --> pizzeria_session
+  if (!raw) { return null } //indien geen gegevens --> doe niks
 
   try {
-    return JSON.parse(raw)
+    return JSON.parse(raw) //zet het object naar een json
   } catch (_) {
     return null
   }
 }
 
-// Save the logged-in user data so page refresh keeps the session.
+//sla het key-value pair op in de localstorage
 export function saveSession(user) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(user))
 }
 
-// Remove session data on logout.
+//verwijder het key-value pair uit de localstorage
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY)
 }

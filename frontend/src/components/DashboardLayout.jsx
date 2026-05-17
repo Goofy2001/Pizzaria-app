@@ -1,9 +1,9 @@
 /**
  * DASHBOARD LAYOUT COMPONENT
- * Auteur: GitHub Copilot
  * Doel: Gedeelde pagina shell voor dashboards
  */
 
+//importeren van de functies
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clearSession, getSession } from '../lib/session.js'
@@ -16,6 +16,36 @@ export default function DashboardLayout({ title, subtitle, children }) {
 
   useEffect(() => {
     setTheme(getTheme())
+  }, [])
+
+  // Zet driver status naar OFFLINE bij browser close/refresh
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      const session = getSession()
+      
+      // Stuurt logout naar backend als het een driver is
+      if (session?.role === 'driver' && session?.driver_id) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'driver', identifier: session.driver_id }),
+            keepalive: true // belangrijk: zorgt dat request compleet is voor browser sluit
+          })
+        } catch (_) {
+          // ignore errors
+        }
+      }
+      
+      // Clear local session
+      clearSession()
+    }
+    
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
   }, [])
 
   // Logout flow: clear local session and return to login page.

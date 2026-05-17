@@ -1,10 +1,9 @@
 /**
  * API ERROR HANDLING
- * Auteur: GitHub Copilot
  * Doel: Parse en format backend error responses
  */
 
-// Convert backend error responses into user-friendly text.
+//maak de foutmelding mooi
 export async function parseApiError(response) {
   let payload = null
   try {

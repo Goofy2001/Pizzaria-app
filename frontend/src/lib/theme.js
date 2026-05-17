@@ -1,14 +1,13 @@
 /**
  * THEME MANAGEMENT
- * Auteur: GitHub Copilot
  * Doel: Light/dark mode theme handling
  */
 
-const THEME_KEY = 'pizzeria_theme'
+const THEME_KEY = 'pizzeria_theme' //localstorage key
 
 export function getSavedTheme() {
   try {
-    return localStorage.getItem(THEME_KEY)
+    return localStorage.getItem(THEME_KEY) //zoek naar de localstorage key
   } catch (_) {
     return null
   }
@@ -16,17 +15,17 @@ export function getSavedTheme() {
 
 export function saveTheme(theme) {
   try {
-    localStorage.setItem(THEME_KEY, theme)
+    localStorage.setItem(THEME_KEY, theme) //sla het key-value pair op
   } catch (_) {
     // ignore
   }
 }
 
-export function systemPrefersDark() {
+export function systemPrefersDark() { 
   return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-export function applyTheme(theme) {
+export function applyTheme(theme) { //gebruik het thema op de root
   const root = document.documentElement
   if (!root) { return }
 
@@ -37,14 +36,14 @@ export function applyTheme(theme) {
   }
 }
 
-export function initTheme() {
+export function initTheme() { //zoek thema && thema preference --> gebruik het thema
   const saved = getSavedTheme()
   const theme = saved || (systemPrefersDark() ? 'dark' : 'light')
   applyTheme(theme)
   return theme
 }
 
-export function toggleTheme() {
+export function toggleTheme() { //switch van thema
   const current = getSavedTheme() || (systemPrefersDark() ? 'dark' : 'light')
   const next = current === 'dark' ? 'light' : 'dark'
   saveTheme(next)
@@ -52,11 +51,11 @@ export function toggleTheme() {
   return next
 }
 
-export function getTheme() {
+export function getTheme() { //zoek thema
   return getSavedTheme() || (systemPrefersDark() ? 'dark' : 'light')
 }
 
-export default {
+export default { //globaal maken
   initTheme,
   toggleTheme,
   getTheme,
