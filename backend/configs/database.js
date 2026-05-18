@@ -16,8 +16,10 @@ const hasDatabaseUrl = Boolean(process.env.DATABASE_URL && process.env.DATABASE_
 // Omztten USE_SUPABASE .env variabele (string) naar boolean
 const useSupabaseFlag = String(process.env.USE_SUPABASE || '').toLowerCase() === 'true'
 
-// Bepaal of Supabase moet worden gebruikt: true als flag en DATABASE_URL aanwezig
-const USE_SUPABASE = useSupabaseFlag && hasDatabaseUrl
+// Bepaal of Supabase moet worden gebruikt:
+// - in productie altijd wanneer DATABASE_URL aanwezig is
+// - lokaal alleen wanneer USE_SUPABASE=true en DATABASE_URL aanwezig is
+const USE_SUPABASE = hasDatabaseUrl && (useSupabaseFlag || process.env.NODE_ENV === 'production')
 
 /**
  * POOL CONFIGURATIE OPBOUW
@@ -27,7 +29,10 @@ const USE_SUPABASE = useSupabaseFlag && hasDatabaseUrl
 // Configuratie voor Supabase (cloud-gehoste PostgreSQL)
 const supabaseConfig = {
     connectionString: process.env.DATABASE_URL, // Full connection string van Supabase
-    ssl: false // SSL disabled 
+    // Supabase/Render vereist SSL voor de pooler/managed database.
+    ssl: {
+        rejectUnauthorized: false
+    }
 }
 
 // Configuratie voor lokale PostgreSQL database
