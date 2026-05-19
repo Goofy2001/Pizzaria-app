@@ -1,6 +1,5 @@
 /**
  * DRIVER HISTORY PAGE
- * Auteur: GitHub Copilot
  * Doel: Weergeven van afgesloten/geannuleerde bestellingen
  */
 

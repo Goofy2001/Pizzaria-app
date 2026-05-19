@@ -1,6 +1,5 @@
 /**
  * DRIVER DASHBOARD PAGE
- * Auteur: GitHub Copilot
  * Doel: Driver interface voor delivery management
  * Beschrijving:
  * - Toon actieve bestellingen voor driver

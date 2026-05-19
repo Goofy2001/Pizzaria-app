@@ -26,12 +26,12 @@ export function systemPrefersDark() {
 }
 
 export function applyTheme(theme) { //gebruik het thema op de root
-  const root = document.documentElement
+  const root = document.documentElement //sla root op
   if (!root) { return }
 
-  if (theme === 'dark') {
+  if (theme === 'dark') { //als thema dark --> zet class op root
     root.classList.add('theme-dark')
-  } else {
+  } else { //anders --> haal class eraf
     root.classList.remove('theme-dark')
   }
 }

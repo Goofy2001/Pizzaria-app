@@ -1,6 +1,5 @@
 /**
  * DRIVER NAVIGATION PAGE
- * Auteur: GitHub Copilot
  * Doel: Full-screen kaart voor real-time navigatie tijdens deliveries
  * Beschrijving:
  * - Leaflet.js kaart met routing machine
