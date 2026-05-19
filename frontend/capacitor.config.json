@@ -1,0 +1,9 @@
+{
+  "appId": "com.pizzeria.app",
+  "appName": "Pizzeria App",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clearSession, getSession } from '../lib/session.js'
 import { getTheme, toggleTheme } from '../lib/theme.js'
+import { apiUrl } from '../config/api.js'
 
 // Shared page shell used by front and driver dashboards.
 export default function DashboardLayout({ title, subtitle, children }) {
@@ -26,7 +27,7 @@ export default function DashboardLayout({ title, subtitle, children }) {
       // Stuurt logout naar backend als het een driver is
       if (session?.role === 'driver' && session?.driver_id) {
         try {
-          await fetch('/api/auth/logout', {
+          await fetch(apiUrl('/auth/logout'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ role: 'driver', identifier: session.driver_id }),
@@ -54,7 +55,7 @@ export default function DashboardLayout({ title, subtitle, children }) {
 
     try {
       if (session?.role === 'driver' && session?.driver_id) {
-        await fetch('/api/auth/logout', {
+        await fetch(apiUrl('/auth/logout'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role: 'driver', identifier: session.driver_id })

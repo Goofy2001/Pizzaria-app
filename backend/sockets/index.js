@@ -9,11 +9,29 @@ const { Server } = require('socket.io')
 const testHandlers = require('./handlers/testHandlers') 
 const driverHandlers = require('./handlers/driverHandlers')
 
+const defaultAllowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8000',
+    'http://localhost',
+    'https://localhost',
+    'capacitor://localhost',
+    'ionic://localhost'
+]
+
+function getAllowedOrigins() {
+    const envOrigins = process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+        : []
+
+    return [...new Set([...defaultAllowedOrigins, ...envOrigins])]
+}
+
 // maak socket server en zet de functies online
 function initializeSocket(server) {
     const io = new Server(server, {
         cors: {
-            origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : true,
+            origin: getAllowedOrigins(),
             methods: ['GET', 'POST']
         }
     })

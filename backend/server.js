@@ -32,6 +32,24 @@ const app = express() // Maak Express applicatie instance
 const server = http.createServer(app) // Maak HTTP server op basis van Express app
 const path = require('path') // Path utilities module
 
+const defaultAllowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8000',
+    'http://localhost',
+    'https://localhost',
+    'capacitor://localhost',
+    'ionic://localhost'
+]
+
+function getAllowedOrigins() {
+    const envOrigins = process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+        : []
+
+    return [...new Set([...defaultAllowedOrigins, ...envOrigins])]
+}
+
 
 /**
  * MIDDLEWARE CONFIGURATIE
@@ -47,7 +65,7 @@ app.use(helmet())
 // CORS: staat cross-origin requests toe van webbrowser
 app.use(cors({
     // Accepteer origins uit env of alle origins als niet gespecificeerd
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : true
+    origin: getAllowedOrigins()
 }))
 
 // Rate limiter configuratie: limit aantal requests per IP adres
