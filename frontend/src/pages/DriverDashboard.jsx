@@ -1,14 +1,15 @@
 /**
- * DRIVER DASHBOARD PAGE
- * Auteur: GitHub Copilot
- * Doel: Driver interface voor delivery management
+ * DRIVER DASHBOARD PAGE (Chauffeur bestellingen overview)
+ * Doel: Interface voor chauffeurs om hun actieve bestellingen te beheren
  * Beschrijving:
- * - Toon actieve bestellingen voor driver
- * - Update order status (picked up, on route, delivered)
- * - Socket.IO real-time updates van orders
- * - Location/GPS tracking integration
+ * - Toon alle actieve bestellingen voor deze chauffeur
+ * - Update order status (betaald → voorbereiding → klaar → onderweg → geleverd)
+ * - Socket.IO real-time updates wanneer nieuwe orders binnenkomen
+ * - Navigatie naar GPS/route map voor actieve delivery
+ * - Toegang tot leveringsgeschiedenis
  */
 
+// ============ IMPORTS ============
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
@@ -16,51 +17,71 @@ import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
 import { apiUrl, getSocketServerUrl } from '../config/api.js'
 
-// Driver dashboard: shows active orders and delivery actions.
+/**
+ * Main component: DriverDashboard
+ * Toont alle bestellingen en acties voor één chauffeur
+ */
 export default function DriverDashboard() {
+  // driverId uit de URL (/driver/5) - identificeert welke chauffeur ingelogd is
   const { driverId } = useParams()
+  // navigate: functie om naar andere pagina's te gaan
   const navigate = useNavigate()
-  // Core page state.
+
+  // ============ STATE VARIABLES ============
+  // driver: informatie over de chauffeur (naam, status, gewenning, branch)
   const [driver, setDriver] = useState(null)
+  // orders: alle bestellingen die aan deze chauffeur toegewezen zijn
   const [orders, setOrders] = useState([])
+  // message: feedback bericht voor gebruiker
   const [message, setMessage] = useState('')
+  // socketRef: referentie naar Socket.IO verbinding voor real-time updates
   const socketRef = useRef(null)
+  // historyStatuses: statussen die betekenen: klaar, niet meer actief
   const historyStatuses = ['delivered', 'picked_up', 'on_table', 'cancelled']
 
-  // Setup socket listeners and initial data load for this driver.
+  // ============ EFFECT 1: Socket setup en initiele data laden ============
+  // Connecteert met real-time server en luistert naar order/delivery events
   useEffect(() => {
     let mounted = true
+    // Maak Socket.IO verbinding
     const socket = io(getSocketServerUrl(), { path: '/socket.io' })
     socketRef.current = socket
 
+    // Laad chauffeur profiel en bestellingen van deze chauffeur
     loadDriver()
     loadOrders()
 
+    // EVENT: Server stuurt melding dat levering is gestart
     socket.on('driver:delivery_started', (data) => {
       if (!mounted) { return }
       setMessage(data.message)
       loadOrders()
     })
 
+    // EVENT: Server stuurt melding dat levering is voltooid
     socket.on('driver:delivery_ended', (data) => {
       if (!mounted) { return }
       setMessage(data.message)
       loadOrders()
     })
 
+    // EVENT: Bestelling-status veranderde voor DEZE chauffeur
     socket.on('order:status_changed', (data) => {
       if (!mounted) { return }
+      // Check: is het deze chauffeur's bestelling?
       if (data.order && Number(data.order.driver_id) === Number(driverId)) {
         setMessage(`Order ${data.order_id} -> ${data.status}`)
         loadOrders()
       }
     })
 
+    // EVENT: Fout van server
     socket.on('error', (data) => {
       if (!mounted) { return }
       setMessage(data?.message || 'Socket error')
     })
 
+    // CLEANUP: Disconnect wanneer component unmount
     return () => {
       mounted = false
       socket.disconnect()
@@ -82,7 +103,9 @@ export default function DriverDashboard() {
     }
   }
 
-  // Join branch room once driver data is loaded
+  // ============ EFFECT 2: Chauffeur gegevens laden na socket connect ============
+  // Dit roept uit zodra driver info beschikbaar is
+  // Zegt tegen server: "Ik ben ingelogd!"
   useEffect(() => {
     if (driver && driver.branch_id && socketRef.current?.connected) {
       socketRef.current.emit('join_vestiging', {

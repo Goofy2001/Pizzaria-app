@@ -1,10 +1,10 @@
 /**
  * LOGIN PAGE
- * Auteur: GitHub Copilot
  * Doel: Authenticatie interface voor drivers en restaurant managers
  * Beschrijving: Accepteert 'front' (manager) of 'driver' rolle met identifier/password
  */
 
+//import functies
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { saveSession } from '../lib/session.js'
@@ -20,27 +20,29 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Submit credentials, store session, then route to correct dashboard.
+  // login functie
   async function handleSubmit(event) {
     event.preventDefault()
     setError('')
     setLoading(true)
-
+    //login api
     try {
       const response = await fetch(apiUrl('/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role, identifier, password })
       })
-
+      //wacht op response
       const payload = await response.json()
       if (!response.ok) {
         throw new Error(payload?.error || `HTTP ${response.status}`)
       }
 
+      //sla de login response op als session
       const user = payload.user
       saveSession(user)
 
+      //ga naar de juiste pagina
       if (user.role === 'front') {
         navigate(`/front/${user.branch_id}`)
       } else {

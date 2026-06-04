@@ -1,31 +1,49 @@
 /**
- * DRIVER HISTORY PAGE
- * Auteur: GitHub Copilot
- * Doel: Weergeven van afgesloten/geannuleerde bestellingen
+ * DRIVER HISTORY PAGE (Chauffeur leveringsgeschiedenis)
+ * Doel: Toon alle afgesloten/geannuleerde bestellingen van chauffeur
+ * Beschrijving:
+ * - Geeft overzicht van alle voltooide leveringen
+ * - Toont geannuleerde bestellingen
+ * - Eenvoudige tabel zonder real-time updates (statisch overzicht)
  */
 
+// ============ IMPORTS ============
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import DashboardLayout from '../components/DashboardLayout.jsx'
 import { parseApiError } from '../lib/api.js'
 import { apiUrl } from '../config/api.js'
 
-// Driver page that only shows completed/cancelled history orders.
+/**
+ * Main component: DriverHistoryWindow
+ * Toont alleen afgesluiten/geannuleerde bestellingen voor visualisatie
+ */
 export default function DriverHistoryWindow() {
+  // ============ URL PARAMETERS ============
+  // driverId: welke chauffeur's geschiedenis willen we zien?
   const { driverId } = useParams()
+  // navigate: functie om terug naar dashboard te gaan
   const navigate = useNavigate()
-  // History data + UI feedback.
+
+  // ============ STATE VARIABLES ============
+  // orders: bestellingen met 'afgehistorie-statussen' (geleverd, opgehaald, etc.)
   const [orders, setOrders] = useState([])
+  // message: feedback voor gebruiker (errors bij laden)
   const [message, setMessage] = useState('')
+  // historyStatuses: welke statussen tellen als 'afgehistorie'?
   const historyStatuses = ['delivered', 'picked_up', 'on_table', 'cancelled']
 
-  // Reload history when driver changes.
+  // ============ EFFECT: Laad geschiedenis ook wanneer driver verandert ============
+  // Dit roept de loadHistory functie uit
   useEffect(() => {
     loadHistory()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId])
 
-  // Fetch all orders for driver, then keep only history statuses.
+  /**
+   * Laad afgesloten bestellingen voor DEZE chauffeur
+   * Filtert alleen bestellingen met history-statussen (delivered, cancelled, etc.)
+   */
   async function loadHistory() {
     try {
       const response = await fetch(apiUrl(`/orders/drivers/${driverId}`))
@@ -38,6 +56,7 @@ export default function DriverHistoryWindow() {
       }
 
       const data = await response.json()
+      // Filter: houd ALLEEN afgesloten bestellingen
       setOrders(data.filter((order) => historyStatuses.includes(order.status)))
     } catch (err) {
       setMessage(err.message)

@@ -1,6 +1,5 @@
 /**
  * FRONT DASHBOARD PAGE
- * Auteur: GitHub Copilot
  * Doel: Restaurant manager interface voor order management en driver tracking
  * Beschrijving:
  * - Order management (status updates, assignments)
@@ -9,6 +8,7 @@
  * - Leaflet.js kaart met driver locaties
  */
 
+//importeer functies
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 import L from 'leaflet'
@@ -43,10 +43,13 @@ export default function FrontDashboard() {
   const [branch, setBranch] = useState(null)
   const [branchDrivers, setBranchDrivers] = useState([])
 
+  //zet actieve delivery statussen naar variabele
   const activeDeliveryStatuses = ['loaded_for_delivery', 'on_route']
 
+  //zet historische statussen naar variabele
   const historyStatuses = ['delivered', 'picked_up', 'on_table', 'cancelled']
 
+  //maak pizzaria-restaurant aan
   const branchCenter = useMemo(() => {
     if (branch?.latitude && branch?.longitude) {
       return [Number(branch.latitude), Number(branch.longitude)]
@@ -54,6 +57,7 @@ export default function FrontDashboard() {
     return [50.8503, 4.3517]
   }, [branch])
 
+    //laad alle info
   useEffect(() => {
     loadOrders()
     loadBranch()
@@ -65,6 +69,8 @@ export default function FrontDashboard() {
     if (!branchId) { return undefined }
 
     let mounted = true
+
+    //ga naar socket server voor deze vestiging
     const socket = io(getSocketServerUrl(), { path: '/socket.io' })
     socketRef.current = socket
 
@@ -75,6 +81,7 @@ export default function FrontDashboard() {
       })
     })
 
+      //update orders bij status change
     socket.on('order:status_changed', (data) => {
       if (!mounted) { return }
 
@@ -101,6 +108,7 @@ export default function FrontDashboard() {
       }
     })
 
+    //signaal: driver updated --> wijzig de pin
     socket.on('driver:location_updated', (data) => {
       if (!mounted || !data?.driver_id) { return }
 

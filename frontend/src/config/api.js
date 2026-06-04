@@ -1,6 +1,5 @@
 /**
  * API CONFIGURATION
- * Auteur: GitHub Copilot
  * Doel: API URL configuratie voor development/production
  */
 

@@ -36,7 +36,6 @@ export default function DashboardLayout({ title, subtitle, children }) {
           // ignore errors
         }
       }
-      
       // Clear local session
       clearSession()
     }
@@ -68,7 +67,7 @@ export default function DashboardLayout({ title, subtitle, children }) {
     }
   }
 
-  return (
+  return ( //standaard opmaak van het dashboard
     <main className="container-fluid py-4 px-3 px-md-4">
       <div className="d-flex justify-content-between align-items-start mb-4 gap-2 flex-wrap">
         <div>
