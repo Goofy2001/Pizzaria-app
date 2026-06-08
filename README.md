@@ -22,6 +22,12 @@ Deze applicatie wordt aangevuld met een statische website (pizzeria-websites) vo
 
 De applicatie maakt gebruik van een zelf-gebouwde RESTful API-architectuur. Deze API-endpoints verzorgen alle communicatie tussen frontend-interfaces en de PostgreSQL-database, waardoor real-time datamanagementen en synchronisatie worden gewaarborgd.
 
+Verder zijn er ook api gebruikt voor de kaartvisualisatie:
+-Nomatim Geocoding api: voor het omzetten van het adres naar een latitude en longitude
+-OSRM routing api: deze api toont de route tussen 2 coordinaten, geeft ook afstand en tijd
+-Openstreetmap api: De achtergrondkaart gebruikt op de kaarten
+-Browser geolocation api: voor het verkrijgen van de livelocatie van de gebruiker
+
 ## 3) Implementatie van elke technische vereiste:
 
 
@@ -58,7 +64,6 @@ De applicatie maakt gebruik van een zelf-gebouwde RESTful API-architectuur. Deze
 ### 3.6) Tooling & Structuur
 - **A) Project opgezet met Vite:** [pizzeria-app/frontend/package.json](pizzeria-app/frontend/package.json#L6-L10) en [pizzeria-app/frontend/vite.config.js](pizzeria-app/frontend/vite.config.js#L1-L47)
 - **B) Correcte folderstructuur:** [pizzeria-app/frontend/src](pizzeria-app/frontend/src) (components/, pages/, lib/, config/)
-
 
 ## 4) Installatiehandleiding
 
@@ -145,5 +150,11 @@ Deze applicatie is ontwikkeld met gebruikmaking van:
 - PostgreSQL voor database management
 
 Chatlogs en discussies met Copilot zijn te vinden in `pizzeria-websites/ChatlogsCopilot/`
+
+Waarvoor heb ik AI gebruikt:
+- Leren van nieuwe technologieen: socket-io, postman, geocoding api, osrm routing api
+- Omzetten van normale htmls naar react pages
+- Inzetten van extra security measures zoals rol en user controle
+- niet in de applicatie verwerkt maar het proberen omzetten van de applicatie naar een mobiele applicatie
 
 

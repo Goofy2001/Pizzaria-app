@@ -162,6 +162,7 @@ export default function DriverDashboard() {
     }
   }
 
+  // Geocode a free-form address string to destination coordinates.
   async function geocodeAddress(address) {
     if (!address) { return null }
 

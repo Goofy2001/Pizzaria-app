@@ -1,6 +1,5 @@
 /**
  * DRIVER NAVIGATION PAGE
- * Auteur: GitHub Copilot
  * Doel: Full-screen kaart voor real-time navigatie tijdens deliveries
  * Beschrijving:
  * - Leaflet.js kaart met routing machine
@@ -59,11 +58,13 @@ function DriverNavigationPage() {
     return [street, houseNumber, postalCode, municipality].filter(Boolean).join(' ') || 'Adres niet meegegeven'
   }, [street, houseNumber, postalCode, municipality])
 
+  // Centralized helper to update GPS status badge + status text.
   function setGpsState(tone, text) {
     setGpsTone(tone)
     setGpsStatus(text)
   }
 
+  // Draw (or refresh) the polyline trail from a list of GPS points.
   function setTrailFromPoints(points) {
     if (!mapRef.current) { return }
 
@@ -84,6 +85,7 @@ function DriverNavigationPage() {
     }).addTo(mapRef.current)
   }
 
+  // Fetch the latest tracked points from backend and render route trail.
   async function loadRecentTrackedLocations() {
     try {
       const response = await fetch(apiUrl(`/drivers/${driverId}/locations?limit=10`))

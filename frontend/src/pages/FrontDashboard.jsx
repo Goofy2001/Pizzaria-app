@@ -57,7 +57,7 @@ export default function FrontDashboard() {
     return [50.8503, 4.3517]
   }, [branch])
 
-    //laad alle info
+  // Initial load: fetch orders, branch metadata, and current drivers.
   useEffect(() => {
     loadOrders()
     loadBranch()
@@ -70,7 +70,7 @@ export default function FrontDashboard() {
 
     let mounted = true
 
-    //ga naar socket server voor deze vestiging
+    // Open Socket.IO channel scoped to this branch dashboard.
     const socket = io(getSocketServerUrl(), { path: '/socket.io' })
     socketRef.current = socket
 
@@ -81,7 +81,7 @@ export default function FrontDashboard() {
       })
     })
 
-      //update orders bij status change
+    // Refresh UI when an order status changes in this branch.
     socket.on('order:status_changed', (data) => {
       if (!mounted) { return }
 
@@ -108,7 +108,7 @@ export default function FrontDashboard() {
       }
     })
 
-    //signaal: driver updated --> wijzig de pin
+    // Live driver location updates: patch state and marker position.
     socket.on('driver:location_updated', (data) => {
       if (!mounted || !data?.driver_id) { return }
 
@@ -144,6 +144,7 @@ export default function FrontDashboard() {
     if (dashboardTab !== 'drivers') { return }
     if (!mapNodeRef.current) { return }
 
+    // Initialize Leaflet map/layers when Drivers tab is active.
     mapRef.current = L.map(mapNodeRef.current, { zoomControl: true }).setView(branchCenter, 13)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -174,6 +175,7 @@ export default function FrontDashboard() {
   }, [branchId, dashboardTab])
 
   useEffect(() => {
+    // Keep map center and branch marker synced when branch coordinates update.
     if (!mapRef.current) { return }
     mapRef.current.setView(branchCenter, 13)
     branchMarkerRef.current?.setLatLng(branchCenter)
@@ -186,6 +188,7 @@ export default function FrontDashboard() {
     clearDriverMarkers()
     clearDriverRoutes()
 
+    // Rebuild markers/routes whenever driver/order context changes.
     let cancelled = false
 
     async function refreshDriverNavigation() {
@@ -212,20 +215,24 @@ export default function FrontDashboard() {
     }
   }, [dashboardTab, branchDrivers, branchCenter, orders])
 
+  // Remove all driver markers from map and clear marker cache.
   function clearDriverMarkers() {
     driverMarkersRef.current.forEach((marker) => marker.remove())
     driverMarkersRef.current.clear()
   }
 
+  // Remove all route polylines from map and clear route cache.
   function clearDriverRoutes() {
     driverRoutesRef.current.forEach((route) => route.remove())
     driverRoutesRef.current.clear()
   }
 
+  // Find the currently active delivery order for a specific driver.
   function findActiveOrderForDriver(driverId) {
     return orders.find((order) => Number(order.driver_id) === Number(driverId) && activeDeliveryStatuses.includes(order.status)) || null
   }
 
+  // Geocode an order address and cache the coordinates by order id.
   async function geocodeOrderDestination(order) {
     if (!order?.id) { return null }
 
@@ -264,6 +271,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Build a human-readable route target label/subtitle for UI popups/lists.
   function getDriverRouteTarget(driver) {
     const activeOrder = findActiveOrderForDriver(driver.id)
 
@@ -280,6 +288,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Create or update a driver's map marker with live status and route info.
   function updateDriverMarker(driver, routeLabel = null, routeSubtitle = null) {
     if (!mapRef.current || !markerLayerRef.current) { return }
     if (driver.latitude === null || driver.longitude === null || driver.latitude === undefined || driver.longitude === undefined) {
@@ -312,6 +321,7 @@ export default function FrontDashboard() {
     driverMarkersRef.current.set(driver.id, marker)
   }
 
+  // Draw a route line from driver to active destination (order or branch).
   async function updateDriverRoute(driver) {
     if (!mapRef.current || !routeLayerRef.current) { return }
     if (driver.latitude === null || driver.longitude === null || driver.latitude === undefined || driver.longitude === undefined) {
@@ -328,11 +338,11 @@ export default function FrontDashboard() {
     const routeTargetInfo = getDriverRouteTarget(driver)
 
     let destination = null
-    let routeColor = '#16a34a'
+    let routeColor = '#198754'
 
     if (activeOrder) {
       destination = await geocodeOrderDestination(activeOrder)
-      routeColor = '#2563eb'
+      routeColor = '#dc3545'
     } else {
       destination = L.latLng(branchCenter)
     }
@@ -358,6 +368,7 @@ export default function FrontDashboard() {
     driverRoutesRef.current.set(driver.id, route)
   }
 
+  // Fetch branch details used for map center and dashboard metadata.
   async function loadBranch() {
     try {
       const response = await fetch(apiUrl(`/branch/${branchId}`))
@@ -372,6 +383,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Fetch online branch drivers and merge with latest GPS snapshot.
   async function loadBranchDrivers() {
     try {
       const [driversResponse, locationsResponse] = await Promise.all([
@@ -422,6 +434,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Fetch all branch orders and update order table state.
   async function loadOrders() {
     try {
       const response = await fetch(apiUrl(`/orders/branch/${branchId}`))
@@ -436,6 +449,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Update an order status through backend API and refresh the list.
   async function updateStatus(orderId, newStatus) {
     try {
       const response = await fetch(apiUrl(`/orders/${orderId}/status`), {
@@ -455,6 +469,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Open assignment UI and load currently available drivers.
   async function openDriverPicker(orderId) {
     setAssigningOrderId(orderId)
     setSelectedDriverId('')
@@ -480,6 +495,7 @@ export default function FrontDashboard() {
     }
   }
 
+  // Assign selected driver to the active order in the picker.
   async function assignDriverToOrder() {
     if (!assigningOrderId || !selectedDriverId) {
       setMessage('Selecteer eerst een driver')
@@ -514,12 +530,14 @@ export default function FrontDashboard() {
     }
   }
 
+  // Client-side order filtering for tabs (all/status/history).
   const filteredOrders = orders.filter((order) => {
     if (activeTab === 'all') { return true }
     if (activeTab === 'history') { return historyStatuses.includes(order.status) }
     return order.status === activeTab
   })
 
+  // Return contextual action button(s) based on current order status/type.
   function renderAction(order) {
     const isPickupOrder = order.type === 'pick-up' || order.type === 'pickup'
     const isInHouseOrder = order.type === 'inHouse' || order.type === 'inhouse'

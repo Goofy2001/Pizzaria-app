@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // login functie
+  // Submit login form, persist session, and navigate by user role.
   async function handleSubmit(event) {
     event.preventDefault()
     setError('')

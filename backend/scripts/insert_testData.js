@@ -98,7 +98,7 @@ function insertTestDataOrders() {
              '2025-03-01 11:30:00', '14:30:00', NULL, NULL, 'on_table', NULL),
 
             ('Grace Willems',  'grace@mail.be',   '0478000007', 1, 'delivery',
-             '1080', 'Molenbeek', 'Ribeaucourtstraat', '15',
+             '1080', 'Sint-Jans-Molenbeek', 'Ribaucourtstraat', '15',
              '2025-03-01 12:00:00', '15:00:00', NULL, NULL, 'loaded_for_delivery', 1),
 
             ('Hans Dubois',    'hans@mail.be',    '0478000008', 1, 'delivery',
