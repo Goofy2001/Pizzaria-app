@@ -73,7 +73,7 @@ De applicatie kan op twee manieren worden geïnstalleerd: lokaal voor ontwikkeli
 
 #### Vereisten
 - Node.js 16+ en npm
-- PostgreSQL 12+ lokaal geïnstalleerd en actief
+- PostgreSQL 12+ lokaal geïnstalleerd en actief (indien de applicatie offline gehost wordt)
 
 #### Stappen
 
@@ -138,7 +138,7 @@ Deze versie maakt verbinding met een PostgreSQL-database gehost op Supabase en w
 
 ## 5) Screenshots
 
-*Screenshots zullen hier worden toegevoegd*
+*Screenshots zitten in de map pictures*
 
 ## 6) Gebruikte bronnen
 
@@ -153,7 +153,8 @@ Chatlogs en discussies met Copilot zijn te vinden in `pizzeria-websites/Chatlogs
 
 Waarvoor heb ik AI gebruikt:
 - Leren van nieuwe technologieen: socket-io, postman, geocoding api, osrm routing api
-- Omzetten van normale htmls naar react pages
+- Omzetten van normale htmls naar react pages en algemene hulp met frontend
+- hulp bij het opstellen van een workflow voor live locatie
 - Inzetten van extra security measures zoals rol en user controle
 - niet in de applicatie verwerkt maar het proberen omzetten van de applicatie naar een mobiele applicatie
 
