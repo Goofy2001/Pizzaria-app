@@ -46,7 +46,7 @@ Verder zijn er ook api gebruikt voor de kaartvisualisatie:
 - **G) Callback functions:** [pizzeria-app/frontend/src/pages/FrontDashboard.jsx](pizzeria-app/frontend/src/pages/FrontDashboard.jsx#L67-L90)
 - **H) Promises:** [pizzeria-app/frontend/src/pages/FrontDashboard.jsx](pizzeria-app/frontend/src/pages/FrontDashboard.jsx#L358)
 - **I) Async & Await:** [pizzeria-app/backend/scripts/insert_testData.js](pizzeria-app/backend/scripts/insert_testData.js#L187-L204)
-- **J) Observer API:** Geïmplementeerd via Socket.IO event listeners
+- **J) Observer API:** Niet gebruikt
 
 ### 3.3) Data & API
 - **A) Fetch om data op te halen:** [pizzeria-app/frontend/src/pages/FrontDashboard.jsx](pizzeria-app/frontend/src/pages/FrontDashboard.jsx#L406-L413)
