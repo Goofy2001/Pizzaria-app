@@ -149,8 +149,6 @@ Deze applicatie is ontwikkeld met gebruikmaking van:
 - Leaflet.js voor kaartfunctionaliteit
 - PostgreSQL voor database management
 
-Chatlogs en discussies met Copilot zijn te vinden in `pizzeria-websites/ChatlogsCopilot/`
-
 Waarvoor heb ik AI gebruikt:
 - Leren van nieuwe technologieen: socket-io, postman, geocoding api, osrm routing api
 - Omzetten van normale htmls naar react pages en algemene hulp met frontend
